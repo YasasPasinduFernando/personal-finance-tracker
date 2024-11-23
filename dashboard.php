@@ -97,39 +97,59 @@ if (isset($_GET['generate_pdf'])) {
             </div>
 
             <!-- Transactions List -->
-            <div class="bg-white shadow-md rounded-lg">
-                <div class="p-6 border-b border-gray-200 flex justify-between items-center">
-                    <h2 class="text-2xl font-bold text-blue-800">Recent Transactions</h2>
+            <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Recent Transactions</h2>
                 </div>
-                <?php foreach ($transactions as $transaction): ?>
-                    <div class="p-6 border-b border-gray-200 flex justify-between items-center hover:bg-gray-50 transition duration-300">
-                        <div>
-                            <p class="font-bold text-blue-800"><?php echo $transaction['category']; ?></p>
-                            <p class="text-sm text-gray-600"><?php echo $transaction['date']; ?></p>
-                        </div>
-                        <div>
-                           <p class="text-sm text-gray-500 italic truncate max-w-xs">
-                           <?php echo $transaction['description'] ?: 'No description'; ?>
-                          </p>
-                        </div>
-                        <div class="flex items-center">
-                            <span class="<?php echo $transaction['type'] == 'income' ? 'text-green-600' : 'text-red-600'; ?> font-bold text-lg mr-6">
-                                LKR <?php echo number_format($transaction['amount'], 2); ?>
-                            </span>
-                            <div>
-                                <a href="edit_transaction.php?id=<?php echo $transaction['id']; ?>" class="text-blue-500 hover:text-blue-700 mr-4 transition duration-300">
-                                    <i class="fas fa-edit"></i> Edit
-                                </a>
-                                <button 
-                                    class="text-red-500 hover:text-red-700 transition duration-300" 
-                                    onclick="openDeleteModal(<?php echo $transaction['id']; ?>)">
-                                    <i class="fas fa-trash"></i> Delete
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Category</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Date</th>
+                                <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Description</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-600">Amount</th>
+                                <th class="px-6 py-4 text-right text-sm font-semibold text-gray-600">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <?php foreach ($transactions as $transaction): ?>
+                            <tr class="hover:bg-gray-50 transition duration-300">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                        <span class="<?php echo $transaction['type'] == 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?> px-3 py-1 rounded-full text-sm font-medium">
+                                            <?php echo $transaction['category']; ?>
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">
+                                    <?php echo $transaction['date']; ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <p class="text-sm text-gray-600 max-w-xs truncate">
+                                        <?php echo $transaction['description'] ?: 'No description'; ?>
+                                    </p>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <span class="<?php echo $transaction['type'] == 'income' ? 'text-green-600' : 'text-red-600'; ?> font-bold">
+                                        LKR <?php echo number_format($transaction['amount'], 2); ?>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <a href="edit_transaction.php?id=<?php echo $transaction['id']; ?>" 
+                                       class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition duration-300 mr-2">
+                                        <i class="fas fa-edit mr-1"></i> Edit
+                                    </a>
+                                    <button onclick="openDeleteModal(<?php echo $transaction['id']; ?>)"
+                                            class="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition duration-300">
+                                        <i class="fas fa-trash mr-1"></i> Delete
                                     </button>
-                                 </a>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
