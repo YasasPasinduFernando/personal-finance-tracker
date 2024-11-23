@@ -4,16 +4,18 @@ session_start();
 include 'database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = $_POST['email'];
+    // Get the submitted username/email and password
+    $usernameOrEmail = $_POST['usernameOrEmail'];
     $password = $_POST['password'];
     
-    $userId = loginUser($email, $password);
+    // Call the updated loginUser function
+    $userId = loginUser($usernameOrEmail, $password);
     if ($userId) {
         $_SESSION['user_id'] = $userId;
         header("Location: dashboard.php");
         exit();
     } else {
-        $_SESSION['error'] = "Invalid email or password";
+        $_SESSION['error'] = "Invalid username/email or password";
     }
 }
 ?>
@@ -52,8 +54,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <form method="POST" class="space-y-4">
                 <div>
                     <div class="flex items-center bg-blue-50 rounded-lg p-2">
-                        <i class="fas fa-envelope text-blue-600 mr-3"></i>
-                        <input type="email" name="email" placeholder="Email" required 
+                        <i class="fas fa-user text-blue-600 mr-3"></i>
+                        <input type="text" name="usernameOrEmail" placeholder="Username or Email" required 
                                class="bg-transparent w-full focus:outline-none text-blue-800 placeholder-blue-600">
                     </div>
                 </div>

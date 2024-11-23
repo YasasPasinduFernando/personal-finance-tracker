@@ -115,9 +115,12 @@ if (isset($_GET['generate_pdf'])) {
                                 <a href="edit_transaction.php?id=<?php echo $transaction['id']; ?>" class="text-blue-500 hover:text-blue-700 mr-4 transition duration-300">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
-                                <a href="delete_transaction.php?id=<?php echo $transaction['id']; ?>" class="text-red-500 hover:text-red-700 transition duration-300" onclick="return confirm('Are you sure?')">
+                                <button 
+                                    class="text-red-500 hover:text-red-700 transition duration-300" 
+                                    onclick="openDeleteModal(<?php echo $transaction['id']; ?>)">
                                     <i class="fas fa-trash"></i> Delete
-                                </a>
+                                    </button>
+                                 </a>
                             </div>
                         </div>
                     </div>
@@ -125,6 +128,29 @@ if (isset($_GET['generate_pdf'])) {
             </div>
         </div>
     </div>
+
+    <!-- Modal -->
+
+    <div id="deleteModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg shadow-lg w-96 p-6">
+        <h2 class="text-xl font-bold mb-4 text-red-600">Confirm Deletion</h2>
+        <p class="text-gray-700 mb-6">Are you sure you want to delete this transaction? This action cannot be undone.</p>
+        <div class="flex justify-end space-x-4">
+            <button 
+                onclick="closeDeleteModal()" 
+                class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">
+                Cancel
+            </button>
+            <a 
+                id="confirmDeleteBtn" 
+                href="#" 
+                class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
+                Delete
+            </a>
+        </div>
+    </div>
+</div>
+
 
     <footer class="bg-gray-800 text-white py-6 w-full">
         <div class="container mx-auto text-center">
@@ -171,6 +197,19 @@ if (isset($_GET['generate_pdf'])) {
                 }
             }
         });
+        // Open modal and set the delete URL
+    function openDeleteModal(transactionId) {
+        const modal = document.getElementById('deleteModal');
+        const deleteBtn = document.getElementById('confirmDeleteBtn');
+        deleteBtn.href = `delete_transaction.php?id=${transactionId}`;
+        modal.classList.remove('hidden');
+    }
+
+    // Close modal
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.add('hidden');
+    }
     </script>
 </body>
 </html>

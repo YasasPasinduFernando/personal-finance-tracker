@@ -12,28 +12,34 @@ function registerUser($name, $email, $password) {
     return $result;
 }
 
-function checkUserExists($email) {
+function checkUserExists($email, $username) {
     $db = getDB();
-    $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
+    $stmt = $db->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
+    $stmt->bind_param("ss", $email, $username);
     $stmt->execute();
     $result = $stmt->get_result();
     return $result->num_rows > 0;
 }
 
-function loginUser($email, $password) {
+
+function loginUser($usernameOrEmail, $password) {
     $db = getDB();
-    $stmt = $db->prepare("SELECT id, password FROM users WHERE email = ?");
-    $stmt->bind_param("s", $email);
+    
+    // Query to check if input matches either a username or email
+    $stmt = $db->prepare("SELECT id, password FROM users WHERE username = ? OR email = ?");
+    $stmt->bind_param("ss", $usernameOrEmail, $usernameOrEmail);
     $stmt->execute();
     $result = $stmt->get_result();
+
     if ($row = $result->fetch_assoc()) {
+        // Verify the password
         if (password_verify($password, $row['password'])) {
-            return $row['id'];
+            return $row['id']; // Return user ID if password matches
         }
     }
-    return false;
+    return false; // Return false if credentials are invalid
 }
+
 
 function getCategories() {
     $db = getDB();

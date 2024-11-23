@@ -8,11 +8,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
 
-    if (checkUserExists($email)) {
-        $_SESSION['message'] = "An account with this email already exists. Please login.";
+    if (checkUserExists($email, $name)) {
+        $_SESSION['message'] = "An account with this email or username already exists. Please login.";
         header("Location: login.php");
         exit();
     }
+    
 
     if (registerUser($name, $email, $password)) {
         $_SESSION['message'] = "Registration successful! Please login.";
@@ -51,14 +52,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <div>
                     <div class="flex items-center bg-blue-50 rounded-lg p-2">
                         <i class="fas fa-user text-blue-600 mr-3"></i>
-                        <input type="text" name="name" placeholder="Full Name" required 
+                        <input type="text" name="name" placeholder="Username (e.g., saman123)" required 
                                class="bg-transparent w-full focus:outline-none text-blue-800 placeholder-blue-600">
                     </div>
                 </div>
                 <div>
                     <div class="flex items-center bg-green-50 rounded-lg p-2">
                         <i class="fas fa-envelope text-green-600 mr-3"></i>
-                        <input type="email" name="email" placeholder="Email" required 
+                        <input type="email" name="email" placeholder="Email (e.g., saman@example.com)" required 
                                class="bg-transparent w-full focus:outline-none text-green-800 placeholder-green-600">
                     </div>
                 </div>
