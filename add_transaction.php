@@ -1,25 +1,32 @@
 <?php
+// add_transaction.php
 session_start();
 include 'database.php';
 
+// Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
 
+// Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $userId = $_SESSION['user_id'];
     $amount = $_POST['amount'];
     $category = $_POST['category'];
     $date = $_POST['date'];
+    $type = $_POST['type'];
 
-    addTransaction($userId, $amount, $category, $date);
-    header("Location: dashboard.php");
-    exit();
+    if (addTransaction($userId, $amount, $category, $date, $type)) {
+        header("Location: dashboard.php");
+        exit();
+    } else {
+        $_SESSION['error'] = "Failed to add transaction";
+    }
 }
 
-$categories = getCategories(); // Fetch categories from the database
-
+// Get categories for the dropdown
+$categories = getCategories();
 ?>
 
 <!DOCTYPE html>
@@ -27,24 +34,65 @@ $categories = getCategories(); // Fetch categories from the database
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <title>Add Transaction</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-100">
-    <div class="container mx-auto p-8">
-        <h1 class="text-2xl font-bold">Add Transaction</h1>
-        <form method="POST">
-            <input type="number" name="amount" placeholder="Amount" required class="border p-2 mb-4 w-full">
-            <select name="category" required class="border p-2 mb-4 w-full">
-                <option value="" disabled selected>Select a category</option>
-                <?php foreach ($categories as $cat): ?>
-                    <option value="<?php echo $cat['name']; ?>"><?php echo $cat['name']; ?></option>
-                <?php endforeach; ?>
-                <option value="Other">Other</option>
-            </select>
-            <input type="date" name="date" required class="border p-2 mb-4 w-full">
-            <button type="submit" class="bg-blue-500 text-white p-2 rounded">Add Transaction</button>
+    <div class="container mx-auto p-8 max-w-md">
+        <h1 class="text-2xl font-bold mb-6">Add New Transaction</h1>
+        
+        <?php if (isset($_SESSION['error'])): ?>
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+            </div>
+        <?php endif; ?>
+
+        <form method="POST" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Transaction Type
+                </label>
+                <select name="type" required class="shadow border rounded w-full py-2 px-3 text-gray-700">
+                    <option value="income">Income</option>
+                    <option value="expense">Expense</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Amount
+                </label>
+                <input type="number" name="amount" step="0.01" required 
+                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Category
+                </label>
+                <select name="category" required class="shadow border rounded w-full py-2 px-3 text-gray-700">
+                    <?php foreach ($categories as $category): ?>
+                        <option value="<?php echo htmlspecialchars($category['name']); ?>">
+                            <?php echo htmlspecialchars($category['name']); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 text-sm font-bold mb-2">
+                    Date
+                </label>
+                <input type="date" name="date" required 
+                       class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+            </div>
+
+            <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
+                Add Transaction
+            </button>
         </form>
+
+        <a href="dashboard.php" class="text-blue-500">Back to Dashboard</a>
     </div>
 </body>
 </html>

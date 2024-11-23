@@ -2,55 +2,184 @@
 // database.php
 include 'config.php';
 
+function registerUser($name, $email, $password) {
+    $db = getDB();
+    $stmt = $db->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+    $stmt->bind_param("sss", $name, $email, $password);
+    $result = $stmt->execute();
+    $stmt->close();
+    $db->close();
+    return $result;
+}
+
+function checkUserExists($email) {
+    $db = getDB();
+    $stmt = $db->prepare("SELECT id FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->num_rows > 0;
+}
+
+function loginUser($email, $password) {
+    $db = getDB();
+    $stmt = $db->prepare("SELECT id, password FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        if (password_verify($password, $row['password'])) {
+            return $row['id'];
+        }
+    }
+    return false;
+}
+
 function getCategories() {
     $db = getDB();
-    $result = $db->query("SELECT * FROM categories");
-    return $result->fetch_all(MYSQLI_ASSOC);
+    $result = $db->query("SELECT * FROM categories ORDER BY type, name");
+    $categories = [];
+    while ($row = $result->fetch_assoc()) {
+        $categories[] = $row;
+    }
+    $db->close();
+    return $categories;
 }
+
+
 
 function getTransactions($userId) {
     $db = getDB();
-    $stmt = $db->prepare("SELECT * FROM transactions WHERE user_id = ?");
+    $stmt = $db->prepare("SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC");
     $stmt->bind_param("i", $userId);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_all(MYSQLI_ASSOC);
+    $transactions = [];
+    while ($row = $result->fetch_assoc()) {
+        $transactions[] = $row;
+    }
+    $stmt->close();
+    $db->close();
+    return $transactions;
 }
 
-function getTransactionById($id, $userId) {
+function getTransactionById($id) {
     $db = getDB();
-    $stmt = $db->prepare("SELECT * FROM transactions WHERE id = ? AND user_id = ?");
-    $stmt->bind_param("ii", $id, $userId);
+    $stmt = $db->prepare("SELECT * FROM transactions WHERE id = ?");
+    $stmt->bind_param("i", $id);
     $stmt->execute();
     $result = $stmt->get_result();
-    
-    // Return the transaction if found, otherwise null
-    return $result->fetch_assoc() ?: null;
-}
-
-function addTransaction($userId, $amount, $category, $date) {
-    $db = getDB();
-    $stmt = $db->prepare("INSERT INTO transactions (user_id, amount, category, date) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("isss", $userId, $amount, $category, $date);
-    $stmt->execute();
+    $transaction = $result->fetch_assoc();
     $stmt->close();
     $db->close();
+    return $transaction;
 }
 
-function updateTransaction($id, $amount, $category, $date) {
+function addTransaction($userId, $amount, $category, $date, $type) {
     $db = getDB();
-    $stmt = $db->prepare("UPDATE transactions SET amount = ?, category = ?, date = ? WHERE id = ?");
-    $stmt->bind_param("isss", $amount, $category, $date, $id);
-    $stmt->execute();
+    $stmt = $db->prepare("INSERT INTO transactions (user_id, amount, category, date, type) VALUES (?, ?, ?, ?, ?)");
+    if (!$stmt) {
+        return false;
+    }
+    $stmt->bind_param("idsss", $userId, $amount, $category, $date, $type);
+    $result = $stmt->execute();
     $stmt->close();
     $db->close();
+    return $result;
 }
+
+
+
+function getTransactionSummary($userId) {
+    $db = getDB();
+    $stmt = $db->prepare("
+        SELECT 
+            COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as income,
+            COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as expenses
+        FROM transactions 
+        WHERE user_id = ?
+    ");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $summary = $result->fetch_assoc();
+    $summary['balance'] = $summary['income'] - $summary['expenses'];
+    $stmt->close();
+    $db->close();
+    return $summary;
+}
+
+
+function updateTransaction($id, $amount, $category, $date, $type) {
+    $db = getDB();
+    $stmt = $db->prepare("UPDATE transactions SET amount = ?, category = ?, date = ?, type = ? WHERE id = ?");
+    $stmt->bind_param("dsssi", $amount, $category, $date, $type, $id);
+    $result = $stmt->execute();
+    $stmt->close();
+    $db->close();
+    return $result;
+}
+
 
 function deleteTransaction($id) {
     $db = getDB();
     $stmt = $db->prepare("DELETE FROM transactions WHERE id = ?");
     $stmt->bind_param("i", $id);
-    $stmt->execute();
+    $result = $stmt->execute();
     $stmt->close();
     $db->close();
+    return $result;
+}
+
+
+function generatePDF($userId, $transactions, $summary) {
+    $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+    
+    // Set document information
+    $pdf->SetCreator(PDF_CREATOR);
+    $pdf->SetTitle('Financial Report');
+    
+    // Set default header data
+    $pdf->SetHeaderData('', 0, 'Financial Report', date('Y-m-d'));
+    
+    // Set margins
+    $pdf->SetMargins(15, 15, 15);
+    
+    // Add a page
+    $pdf->AddPage();
+    
+    // Write summary
+    $pdf->SetFont('helvetica', 'B', 16);
+    $pdf->Cell(0, 10, 'Financial Summary', 0, 1, 'C');
+    $pdf->Ln(10);
+    
+    $pdf->SetFont('helvetica', '', 12);
+    $pdf->Cell(0, 10, 'Total Income: LKR ' . number_format($summary['income'], 2), 0, 1);
+    $pdf->Cell(0, 10, 'Total Expenses: LKR ' . number_format($summary['expenses'], 2), 0, 1);
+    $pdf->Cell(0, 10, 'Net Balance: LKR ' . number_format($summary['balance'], 2), 0, 1);
+    
+    $pdf->Ln(10);
+    
+    // Transactions table
+    $pdf->SetFont('helvetica', 'B', 14);
+    $pdf->Cell(0, 10, 'Transaction History', 0, 1, 'C');
+    
+    $pdf->SetFont('helvetica', 'B', 12);
+    $pdf->Cell(40, 10, 'Date', 1);
+    $pdf->Cell(40, 10, 'Type', 1);
+    $pdf->Cell(60, 10, 'Category', 1);
+    $pdf->Cell(40, 10, 'Amount', 1);
+    $pdf->Ln();
+    
+    $pdf->SetFont('helvetica', '', 12);
+    foreach ($transactions as $transaction) {
+        $pdf->Cell(40, 10, $transaction['date'], 1);
+        $pdf->Cell(40, 10, ucfirst($transaction['type']), 1);
+        $pdf->Cell(60, 10, $transaction['category'], 1);
+        $pdf->Cell(40, 10, 'LKR ' . number_format($transaction['amount'], 2), 1);
+        $pdf->Ln();
+    }
+    
+    // Output PDF
+    $pdf->Output('financial_report_' . date('Y-m-d') . '.pdf', 'D');
 }

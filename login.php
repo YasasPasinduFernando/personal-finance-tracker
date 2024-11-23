@@ -1,29 +1,19 @@
 <?php
+// login.php
 session_start();
 include 'database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'];
+    $email = $_POST['email'];
     $password = $_POST['password'];
-
-    // User authentication logic
-    $db = getDB();
-    $stmt = $db->prepare("SELECT * FROM users WHERE username = ?");
-    $stmt->bind_param("s", $username);
-    $stmt->execute();
-    $result = $stmt->get_result();
     
-    if ($result->num_rows > 0) {
-        $user = $result->fetch_assoc();
-        if (password_verify($password, $user['password'])) {
-            $_SESSION['user_id'] = $user['id'];
-            header("Location: dashboard.php");
-            exit();
-        } else {
-            $error = "Invalid credentials.";
-        }
+    $userId = loginUser($email, $password);
+    if ($userId) {
+        $_SESSION['user_id'] = $userId;
+        header("Location: dashboard.php");
+        exit();
     } else {
-        $error = "No user found.";
+        $_SESSION['error'] = "Invalid email or password";
     }
 }
 ?>
@@ -33,21 +23,84 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Tracker - Login</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <title>Login</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto p-8">
-        <h1 class="text-2xl font-bold">Login</h1>
-        <?php if (isset($error)): ?>
-            <p class="text-red-500"><?php echo $error; ?></p>
-        <?php endif; ?>
-        <form method="POST">
-            <input type="text" name="username" placeholder="Username" required class="border p-2 mb-4 w-full">
-            <input type="password" name="password" placeholder="Password" required class="border p-2 mb-4 w-full">
-            <button type="submit" class="bg-blue-500 text-white p-2 rounded">Login</button>
-        </form>
-        <p>Don't have an account? <a href="register.php" class="text-blue-500">Register here</a></p>
+<body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex flex-col items-center justify-center">
+    <div class="w-full max-w-md">
+        <div class="bg-white shadow-2xl rounded-xl p-8">
+            <h1 class="text-4xl font-extrabold text-blue-800 mb-6 text-center flex items-center justify-center">
+                <i class="fas fa-sign-in-alt mr-4 text-green-500"></i>
+                Login
+            </h1>
+
+            <?php if (isset($_SESSION['error'])): ?>
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                </div>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION['message'])): ?>
+                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 flex items-center">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <?php echo $_SESSION['message']; unset($_SESSION['message']); ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" class="space-y-4">
+                <div>
+                    <div class="flex items-center bg-blue-50 rounded-lg p-2">
+                        <i class="fas fa-envelope text-blue-600 mr-3"></i>
+                        <input type="email" name="email" placeholder="Email" required 
+                               class="bg-transparent w-full focus:outline-none text-blue-800 placeholder-blue-600">
+                    </div>
+                </div>
+                <div>
+                    <div class="flex items-center bg-green-50 rounded-lg p-2">
+                        <i class="fas fa-lock text-green-600 mr-3"></i>
+                        <input type="password" name="password" placeholder="Password" required 
+                               class="bg-transparent w-full focus:outline-none text-green-800 placeholder-green-600">
+                    </div>
+                </div>
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition duration-300 w-full flex items-center justify-center">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Login
+                </button>
+            </form>
+
+            <div class="mt-6 text-center">
+                <p class="text-gray-600">
+                    Don't have an account? 
+                    <a href="register.php" class="text-blue-500 hover:text-blue-700 transition duration-300">
+                        Register here
+                    </a>
+                </p>
+            </div>
+        </div>
     </div>
+
+    <footer class="bg-gray-800 text-white py-6 w-full mt-8">
+        <div class="container mx-auto text-center">
+            <p class="mb-2">
+                Created By Yasas Pasindu Fernando (23da2-0318)
+            </p>
+            <p class="text-sm text-gray-400">
+                @ SLTC Research University
+            </p>
+            <div class="mt-4 text-gray-400 text-2xl">
+                <a href="https://github.com/YasasPasinduFernando" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/yasas-pasindu-fernando-893b292b2/" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="https://x.com/YPasiduFernando?s=09" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
