@@ -81,13 +81,13 @@ function getTransactionById($id) {
     return $transaction;
 }
 
-function addTransaction($userId, $amount, $category, $date, $type) {
+function addTransaction($userId, $amount, $category, $date, $type, $description = null) {
     $db = getDB();
-    $stmt = $db->prepare("INSERT INTO transactions (user_id, amount, category, date, type) VALUES (?, ?, ?, ?, ?)");
+    $stmt = $db->prepare("INSERT INTO transactions (user_id, amount, category, date, type, description) VALUES (?, ?, ?, ?, ?, ?)");
     if (!$stmt) {
         return false;
     }
-    $stmt->bind_param("idsss", $userId, $amount, $category, $date, $type);
+    $stmt->bind_param("idssss", $userId, $amount, $category, $date, $type, $description);
     $result = $stmt->execute();
     $stmt->close();
     $db->close();
@@ -116,11 +116,29 @@ function getTransactionSummary($userId) {
 }
 
 
-function updateTransaction($id, $amount, $category, $date, $type) {
+function updateTransaction($id, $amount, $category, $date, $type, $description) {
     $db = getDB();
-    $stmt = $db->prepare("UPDATE transactions SET amount = ?, category = ?, date = ?, type = ? WHERE id = ?");
-    $stmt->bind_param("dsssi", $amount, $category, $date, $type, $id);
+    // Modified SQL query to explicitly include description
+    $stmt = $db->prepare("UPDATE transactions SET amount = ?, category = ?, date = ?, type = ?, description = ? WHERE id = ?");
+    if (!$stmt) {
+        // Handle preparation error
+        error_log("Prepare failed: " . $db->error);
+        return false;
+    }
+    
+    // Bind all parameters including description
+    if (!$stmt->bind_param("dssssi", $amount, $category, $date, $type, $description, $id)) {
+        // Handle binding error
+        error_log("Binding parameters failed: " . $stmt->error);
+        return false;
+    }
+    
     $result = $stmt->execute();
+    if (!$result) {
+        // Handle execution error
+        error_log("Execute failed: " . $stmt->error);
+    }
+    
     $stmt->close();
     $db->close();
     return $result;

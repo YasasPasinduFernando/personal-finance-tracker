@@ -16,14 +16,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $category = $_POST['category'];
     $date = $_POST['date'];
     $type = $_POST['type'];
+    $description = isset($_POST['description']) ? $_POST['description'] : null; // Get description (optional)
 
-    if (addTransaction($userId, $amount, $category, $date, $type)) {
+    if (addTransaction($userId, $amount, $category, $date, $type, $description)) {
         header("Location: dashboard.php");
         exit();
     } else {
         $_SESSION['error'] = "Failed to add transaction";
     }
 }
+
 
 // Get categories for the dropdown
 $categories = getCategories();
@@ -91,6 +93,21 @@ $categories = getCategories();
                     <input type="date" name="date" required 
                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
                 </div>
+                <div class="mb-4">
+    <label for="description" class="block text-gray-700 text-sm font-bold mb-2 flex items-center">
+        <i class="fas fa-align-left mr-2 text-purple-600"></i> Description
+    </label>
+    <textarea 
+        id="description" 
+        name="description" 
+        rows="3" 
+        placeholder="Enter a description for this transaction (optional)" 
+        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 leading-tight whitespace-pre-wrap break-words indent-0"
+    ></textarea>
+</div>
+
+
+
 
                 <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full flex items-center justify-center">
                     <i class="fas fa-plus mr-2"></i> Add Transaction
@@ -101,6 +118,7 @@ $categories = getCategories();
                 <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
             </a>
         </div>
+        
     </div>
 
     <footer class="bg-gray-800 text-white py-6 w-full">

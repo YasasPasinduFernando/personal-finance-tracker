@@ -107,6 +107,11 @@ if (isset($_GET['generate_pdf'])) {
                             <p class="font-bold text-blue-800"><?php echo $transaction['category']; ?></p>
                             <p class="text-sm text-gray-600"><?php echo $transaction['date']; ?></p>
                         </div>
+                        <div>
+                           <p class="text-sm text-gray-500 italic truncate max-w-xs">
+                           <?php echo $transaction['description'] ?: 'No description'; ?>
+                          </p>
+                        </div>
                         <div class="flex items-center">
                             <span class="<?php echo $transaction['type'] == 'income' ? 'text-green-600' : 'text-red-600'; ?> font-bold text-lg mr-6">
                                 LKR <?php echo number_format($transaction['amount'], 2); ?>

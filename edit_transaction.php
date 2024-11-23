@@ -29,8 +29,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $category = $_POST['category'];
     $date = $_POST['date'];
     $type = $_POST['type'];
-
-    if (updateTransaction($transactionId, $amount, $category, $date, $type)) {
+    $description = trim($_POST['description']); // Add trim() to clean the input
+    
+    // For debugging
+    error_log("Updating transaction: ID=$transactionId, Amount=$amount, Category=$category, Date=$date, Type=$type, Description=$description");
+    
+    if (updateTransaction($transactionId, $amount, $category, $date, $type, $description)) {
         header("Location: dashboard.php");
         exit();
     } else {
@@ -107,6 +111,19 @@ $categories = getCategories();
                            value="<?php echo htmlspecialchars($transaction['date']); ?>"
                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
                 </div>
+                <div class="mb-4">
+                    <label for="description" class="block text-gray-700 text-sm font-bold mb-2 flex items-center">
+                    <i class="fas fa-align-left mr-2 text-purple-600"></i> Description
+                    </label>
+                    <textarea 
+                        id="description" 
+                        name="description" 
+                        rows="3" 
+                        placeholder="Enter a description for this transaction (optional)" 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 leading-tight whitespace-pre-wrap break-words indent-0"
+                    ><?php echo htmlspecialchars($transaction['description'] ?? ''); ?>
+                    </textarea>
+                    </div>
 
                 <div class="flex items-center justify-between">
                     <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
