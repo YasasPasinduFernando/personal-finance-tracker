@@ -47,7 +47,7 @@ if (isset($_GET['generate_pdf'])) {
                         <i class="fas fa-file-download mr-2"></i>
                         Download Report
                     </a>
-                    <a href="index.php" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg transition duration-300 flex items-center inline-flex">
+                    <button onclick="openLogoutModal()" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg transition duration-300 flex items-center inline-flex">
                         <i class="fas fa-sign-out-alt mr-2"></i>
                         Logout
                     </a>
@@ -154,27 +154,46 @@ if (isset($_GET['generate_pdf'])) {
         </div>
     </div>
 
-    <!-- Modal -->
-
+    <!-- Delete Modal -->
     <div id="deleteModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-lg shadow-lg w-96 p-6">
-        <h2 class="text-xl font-bold mb-4 text-red-600">Confirm Deletion</h2>
-        <p class="text-gray-700 mb-6">Are you sure you want to delete this transaction? This action cannot be undone.</p>
-        <div class="flex justify-end space-x-4">
-            <button 
-                onclick="closeDeleteModal()" 
-                class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">
-                Cancel
-            </button>
-            <a 
-                id="confirmDeleteBtn" 
-                href="#" 
-                class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
-                Delete
-            </a>
-        </div>
-    </div>
-</div>
+                <div class="bg-white rounded-lg shadow-lg w-96 p-6">
+                    <h2 class="text-xl font-bold mb-4 text-red-600">Confirm Deletion</h2>
+                    <p class="text-gray-700 mb-6">Are you sure you want to delete this transaction? This action cannot be undone.</p>
+                    <div class="flex justify-end space-x-4">
+                        <button 
+                            onclick="closeDeleteModal()" 
+                            class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">
+                            Cancel
+                        </button>
+                        <a 
+                            id="confirmDeleteBtn" 
+                            href="#" 
+                            class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
+                            Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
+                <div class="bg-white rounded-lg shadow-lg w-96 p-6">
+                    <h2 class="text-xl font-bold mb-4 text-blue-600">Confirm Logout</h2>
+                    <p class="text-gray-700 mb-6">Are you sure you want to logout from your account?</p>
+                    <div class="flex justify-end space-x-4">
+                        <button 
+                            onclick="closeLogoutModal()" 
+                            class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">
+                            Cancel
+                        </button>
+                        <a 
+                            href="index.php" 
+                            class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
+                            Logout
+                        </a>
+                    </div>
+                </div>
+            </div>
 
 
     <footer class="bg-gray-800 text-white py-6 w-full">
@@ -222,19 +241,42 @@ if (isset($_GET['generate_pdf'])) {
                 }
             }
         });
-        // Open modal and set the delete URL
-    function openDeleteModal(transactionId) {
-        const modal = document.getElementById('deleteModal');
-        const deleteBtn = document.getElementById('confirmDeleteBtn');
-        deleteBtn.href = `delete_transaction.php?id=${transactionId}`;
-        modal.classList.remove('hidden');
-    }
+        // Delete modal functions
+        function openDeleteModal(transactionId) {
+            const modal = document.getElementById('deleteModal');
+            const deleteBtn = document.getElementById('confirmDeleteBtn');
+            deleteBtn.href = `delete_transaction.php?id=${transactionId}`;
+            modal.classList.remove('hidden');
+        }
 
-    // Close modal
-    function closeDeleteModal() {
-        const modal = document.getElementById('deleteModal');
-        modal.classList.add('hidden');
-    }
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.classList.add('hidden');
+        }
+
+        // Logout modal functions
+        function openLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('hidden');
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('hidden');
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const deleteModal = document.getElementById('deleteModal');
+            const logoutModal = document.getElementById('logoutModal');
+            
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
+            if (event.target === logoutModal) {
+                closeLogoutModal();
+            }
+        }
     </script>
 </body>
 </html>
