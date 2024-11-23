@@ -17,6 +17,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     header("Location: dashboard.php");
     exit();
 }
+
+$categories = getCategories(); // Fetch categories from the database
+
 ?>
 
 <!DOCTYPE html>
@@ -32,7 +35,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h1 class="text-2xl font-bold">Add Transaction</h1>
         <form method="POST">
             <input type="number" name="amount" placeholder="Amount" required class="border p-2 mb-4 w-full">
-            <input type="text" name="category" placeholder="Category" required class="border p-2 mb-4 w-full">
+            <select name="category" required class="border p-2 mb-4 w-full">
+                <option value="" disabled selected>Select a category</option>
+                <?php foreach ($categories as $cat): ?>
+                    <option value="<?php echo $cat['name']; ?>"><?php echo $cat['name']; ?></option>
+                <?php endforeach; ?>
+                <option value="Other">Other</option>
+            </select>
             <input type="date" name="date" required class="border p-2 mb-4 w-full">
             <button type="submit" class="bg-blue-500 text-white p-2 rounded">Add Transaction</button>
         </form>

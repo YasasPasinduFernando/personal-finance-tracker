@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $userId = $_SESSION['user_id'];
-$transactions = getTransactions($userId);
+$transactions = getTransactions($userId); // Fetch transactions for the logged-in user
 
 // Calculate total amount
 $totalAmount = 0;
@@ -32,19 +32,23 @@ foreach ($transactions as $transaction) {
         <a href="add_transaction.php" class="bg-blue-500 text-white p-2 rounded">Add Transaction</a>
         <h2 class="mt-4">Your Transactions</h2>
         <div id="transactions" class="mt-2">
-            <?php foreach ($transactions as $transaction): ?>
-                <div class="border p-4 mb-2 flex justify-between">
-                    <div>
-                        <p><strong>Amount:</strong> LKR <?php echo number_format($transaction['amount'], 2); ?></p>
-                        <p><strong>Category:</strong> <?php echo $transaction['category']; ?></p>
-                        <p><strong>Date:</strong> <?php echo $transaction['date']; ?></p>
+            <?php if (empty($transactions)): ?>
+                <p>No transactions found.</p>
+            <?php else: ?>
+                <?php foreach ($transactions as $transaction): ?>
+                    <div class="border p-4 mb-2 flex justify-between">
+                        <div>
+                            <p><strong>Amount:</strong> LKR <?php echo number_format($transaction['amount'], 2); ?></p>
+                            <p><strong>Category:</strong> <?php echo $transaction['category']; ?></p>
+                            <p><strong>Date:</strong> <?php echo $transaction['date']; ?></p>
+                        </div>
+                        <div>
+                            <a href="edit_transaction.php?id=<?php echo $transaction['id']; ?>" class="text-blue-500">Edit</a>
+                            <a href="delete_transaction.php?id=<?php echo $transaction['id']; ?>" class="text-red-500">Delete</a>
+                        </div>
                     </div>
-                    <div>
-                        <a href="edit_transaction.php?id=<?php echo $transaction['id']; ?>" class="text-blue-500">Edit</a>
-                        <a href="delete_transaction.php?id=<?php echo $transaction['id']; ?>" class="text-red-500">Delete</a>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
     </div>
     <script src="script.js"></script>
