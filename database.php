@@ -162,48 +162,108 @@ function generatePDF($userId, $transactions, $summary) {
     // Set document information
     $pdf->SetCreator(PDF_CREATOR);
     $pdf->SetTitle('Financial Report');
+    $pdf->SetAuthor('Finance Tracker');
     
     // Set default header data
     $pdf->SetHeaderData('', 0, 'Financial Report', date('Y-m-d'));
     
+    // Set header and footer fonts
+    $pdf->setHeaderFont(Array('helvetica', '', 12));
+    $pdf->setFooterFont(Array('helvetica', '', 8));
+    
     // Set margins
     $pdf->SetMargins(15, 15, 15);
+    $pdf->SetHeaderMargin(5);
+    $pdf->SetFooterMargin(10);
+    
+    // Set auto page breaks
+    $pdf->SetAutoPageBreak(TRUE, 15);
     
     // Add a page
     $pdf->AddPage();
     
-    // Write summary
+    // Write summary section
     $pdf->SetFont('helvetica', 'B', 16);
     $pdf->Cell(0, 10, 'Financial Summary', 0, 1, 'C');
-    $pdf->Ln(10);
+    $pdf->Ln(5);
     
+    // Create summary table
     $pdf->SetFont('helvetica', '', 12);
-    $pdf->Cell(0, 10, 'Total Income: LKR ' . number_format($summary['income'], 2), 0, 1);
-    $pdf->Cell(0, 10, 'Total Expenses: LKR ' . number_format($summary['expenses'], 2), 0, 1);
-    $pdf->Cell(0, 10, 'Net Balance: LKR ' . number_format($summary['balance'], 2), 0, 1);
+    $pdf->SetFillColor(240, 240, 240);
+    
+    // Summary boxes with different colors
+    $pdf->SetFillColor(230, 247, 230);
+    $pdf->Cell(0, 12, 'Total Income: LKR ' . number_format($summary['income'], 2), 1, 1, 'L', true);
+    
+    $pdf->SetFillColor(252, 230, 230);
+    $pdf->Cell(0, 12, 'Total Expenses: LKR ' . number_format($summary['expenses'], 2), 1, 1, 'L', true);
+    
+    $pdf->SetFillColor(230, 240, 250);
+    $pdf->Cell(0, 12, 'Net Balance: LKR ' . number_format($summary['balance'], 2), 1, 1, 'L', true);
     
     $pdf->Ln(10);
     
-    // Transactions table
+    // Transactions table header
     $pdf->SetFont('helvetica', 'B', 14);
     $pdf->Cell(0, 10, 'Transaction History', 0, 1, 'C');
+    $pdf->Ln(5);
     
-    $pdf->SetFont('helvetica', 'B', 12);
-    $pdf->Cell(40, 10, 'Date', 1);
-    $pdf->Cell(40, 10, 'Type', 1);
-    $pdf->Cell(60, 10, 'Category', 1);
-    $pdf->Cell(40, 10, 'Amount', 1);
-    $pdf->Ln();
+    // Table headers
+    $pdf->SetFont('helvetica', 'B', 11);
+    $pdf->SetFillColor(230, 230, 230);
     
-    $pdf->SetFont('helvetica', '', 12);
+    // Define column widths
+    $dateWidth = 30;
+    $typeWidth = 25;
+    $categoryWidth = 35;
+    $amountWidth = 35;
+    $descriptionWidth = $pdf->GetPageWidth() - $pdf->GetX() - $pdf->GetX() - $dateWidth - $typeWidth - $categoryWidth - $amountWidth;
+    
+    // Print table headers
+    $pdf->Cell($dateWidth, 10, 'Date', 1, 0, 'C', true);
+    $pdf->Cell($typeWidth, 10, 'Type', 1, 0, 'C', true);
+    $pdf->Cell($categoryWidth, 10, 'Category', 1, 0, 'C', true);
+    $pdf->Cell($amountWidth, 10, 'Amount', 1, 0, 'C', true);
+    $pdf->Cell($descriptionWidth, 10, 'Description', 1, 1, 'C', true);
+    
+    // Table content
+    $pdf->SetFont('helvetica', '', 10);
     foreach ($transactions as $transaction) {
-        $pdf->Cell(40, 10, $transaction['date'], 1);
-        $pdf->Cell(40, 10, ucfirst($transaction['type']), 1);
-        $pdf->Cell(60, 10, $transaction['category'], 1);
-        $pdf->Cell(40, 10, 'LKR ' . number_format($transaction['amount'], 2), 1);
-        $pdf->Ln();
+        $startY = $pdf->GetY();
+        $currentY = $startY;
+        $maxHeight = 0;
+        
+        // Calculate required height for description
+        $description = $transaction['description'] ?: 'No description';
+        $descriptionHeight = $pdf->getStringHeight($descriptionWidth, $description);
+        $rowHeight = max(10, $descriptionHeight);
+        
+        // Set fill color based on transaction type
+        $pdf->SetFillColor(
+            $transaction['type'] == 'income' ? 240 : 255,
+            $transaction['type'] == 'income' ? 255 : 240,
+            240
+        );
+        
+        // Print row with uniform height
+        $pdf->Cell($dateWidth, $rowHeight, $transaction['date'], 1, 0, 'L', true);
+        $pdf->Cell($typeWidth, $rowHeight, ucfirst($transaction['type']), 1, 0, 'L', true);
+        $pdf->Cell($categoryWidth, $rowHeight, $transaction['category'], 1, 0, 'L', true);
+        $pdf->Cell($amountWidth, $rowHeight, 'LKR ' . number_format($transaction['amount'], 2), 1, 0, 'R', true);
+        
+        // Multi-cell for description to handle line breaks
+        $currentX = $pdf->GetX();
+        $pdf->MultiCell($descriptionWidth, $rowHeight, $description, 1, 'L', true);
+        
+        // Move to next line if not already moved by MultiCell
+        if ($pdf->GetY() == $currentY) {
+            $pdf->Ln();
+        }
     }
     
+    // Generate filename with date
+    $filename = 'financial_report_' . date('Y-m-d_His') . '.pdf';
+    
     // Output PDF
-    $pdf->Output('financial_report_' . date('Y-m-d') . '.pdf', 'D');
+    $pdf->Output($filename, 'D');
 }
