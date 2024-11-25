@@ -25,6 +25,8 @@ if (isset($_GET['generate_pdf'])) {
     generatePDF($userId, $transactions, $summary);
     exit();
 }
+
+$hasTransactions = count($transactions) > 0;
 ?>
 
 <!DOCTYPE html>
@@ -249,6 +251,23 @@ if (isset($_GET['generate_pdf'])) {
             </div>
 
 
+    <!-- Modal 0 Data  -->
+<?php if (!$hasTransactions): ?>
+    <div id="emptyDataModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">No Transactions Found</h2>
+            <p class="text-gray-600 mb-6">It seems you have no transaction details. Please add a transaction to proceed.</p>
+            <div class="text-center">
+                <a href="add_transaction.php" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                    Add Transaction
+                </a>
+            </div>
+        </div>
+    </div>
+
+<?php endif; ?>
+
+
     <footer class="bg-gray-800 text-white py-6 w-full">
         <div class="container mx-auto text-center">
             <p class="mb-2">
@@ -410,6 +429,14 @@ if (isset($_GET['generate_pdf'])) {
         }
     });
 });
+
+// Prevent 0 data the modal from being closed manually
+// Disable close functionality (force user to go to the page)
+document.getElementById('noTransactionModal').addEventListener('click', function(e) {
+            if (e.target !== this) return;
+            e.preventDefault();
+        });
+
     </script>
 </body>
 </html>
