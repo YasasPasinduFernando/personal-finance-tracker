@@ -18,6 +18,7 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id'];
 $transactions = getTransactions($userId);
 $summary = getTransactionSummary($userId);
+$monthlyData = getMonthlyTransactions($userId);
 
 // Handle PDF generation
 if (isset($_GET['generate_pdf'])) {
@@ -106,11 +107,57 @@ if (isset($_GET['generate_pdf'])) {
             <canvas id="transactionChart" class="w-full"></canvas>
         </div>
 
+        <div class="grid grid-cols-1 gap-6 mb-8">
+    <!-- Monthly Trend Chart -->
+    <div class="bg-white shadow-md rounded-lg p-4 sm:p-6">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-800 mb-4">Monthly Trends</h2>
+        <div class="relative h-[300px] sm:h-[400px]"> <!-- Responsive height -->
+            <canvas id="monthlyTrendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Monthly Summary Table -->
+    <div class="bg-white shadow-md rounded-lg p-4 sm:p-6">
+        <h2 class="text-lg sm:text-xl font-bold text-gray-800 mb-4">Monthly Summary</h2>
+        <div class="overflow-x-auto -mx-4 sm:mx-0"> <!-- Negative margin on mobile to allow full scroll -->
+            <table class="w-full min-w-[600px]"> <!-- Min width to prevent squishing -->
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-600">Month</th>
+                        <th class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm font-semibold text-gray-600">Income</th>
+                        <th class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm font-semibold text-gray-600">Expenses</th>
+                        <th class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm font-semibold text-gray-600">Net</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    <?php foreach ($monthlyData as $month): ?>
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-600 whitespace-nowrap">
+                                <?php echo date('F Y', strtotime($month['month'] . '-01')); ?>
+                            </td>
+                            <td class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm text-green-600 font-medium whitespace-nowrap">
+                                LKR <?php echo number_format($month['income'], 2); ?>
+                            </td>
+                            <td class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm text-red-600 font-medium whitespace-nowrap">
+                                LKR <?php echo number_format($month['expenses'], 2); ?>
+                            </td>
+                            <td class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm <?php echo $month['net'] >= 0 ? 'text-green-600' : 'text-red-600'; ?> font-medium whitespace-nowrap">
+                                LKR <?php echo number_format($month['net'], 2); ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
 <!-- Transactions List -->
 <div class="bg-white shadow-lg rounded-2xl overflow-hidden">
     <div class="p-6 border-b border-gray-200">
         <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Recent Transactions</h2>
     </div>
+
     
     <!-- Desktop Table (hidden on mobile) -->
     <div class="hidden md:block overflow-x-auto">
@@ -160,6 +207,8 @@ if (isset($_GET['generate_pdf'])) {
             </tbody>
         </table>
     </div>
+
+
 
     <!-- Mobile Cards (visible only on mobile) -->
     <div class="md:hidden">
@@ -322,6 +371,92 @@ if (isset($_GET['generate_pdf'])) {
                 closeLogoutModal();
             }
         }
+        document.addEventListener('DOMContentLoaded', function() {
+    const monthlyData = <?php echo json_encode(array_reverse($monthlyData)); ?>;
+    
+    const months = monthlyData.map(item => {
+        const date = new Date(item.month + '-01');
+        return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    });
+    
+    const incomeData = monthlyData.map(item => item.income);
+    const expenseData = monthlyData.map(item => item.expenses);
+    
+    const ctx = document.getElementById('monthlyTrendChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Income',
+                    data: incomeData,
+                    borderColor: 'rgb(34, 197, 94)',
+                    backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                    tension: 0.1,
+                    fill: true
+                },
+                {
+                    label: 'Expenses',
+                    data: expenseData,
+                    borderColor: 'rgb(239, 68, 68)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    tension: 0.1,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        // Make legend text smaller on mobile
+                        font: {
+                            size: window.innerWidth < 640 ? 10 : 12
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            label += 'LKR ' + context.parsed.y.toLocaleString();
+                            return label;
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        // Make axis labels smaller on mobile
+                        font: {
+                            size: window.innerWidth < 640 ? 10 : 12
+                        },
+                        callback: function(value) {
+                            return 'LKR ' + value.toLocaleString();
+                        }
+                    }
+                },
+                x: {
+                    ticks: {
+                        // Make axis labels smaller on mobile
+                        font: {
+                            size: window.innerWidth < 640 ? 10 : 12
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
     </script>
 </body>
 </html>

@@ -159,117 +159,180 @@ function deleteTransaction($id) {
 function generatePDF($userId, $transactions, $summary) {
     $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     
-    // Set document information
+    // Document settings
     $pdf->SetCreator(PDF_CREATOR);
     $pdf->SetTitle('Financial Report');
     $pdf->SetAuthor('Finance Tracker');
     
-    // Set default header data
-    $pdf->SetHeaderData('', 0, 'Financial Report', date('Y-m-d'));
+    // Remove default header/footer
+    $pdf->setPrintHeader(false);
+    $pdf->setPrintFooter(false);
     
-    // Set header and footer fonts
-    $pdf->setHeaderFont(Array('helvetica', '', 12));
-    $pdf->setFooterFont(Array('helvetica', '', 8));
-    
-    // Set margins
+    // Margins
     $pdf->SetMargins(15, 15, 15);
-    $pdf->SetHeaderMargin(5);
-    $pdf->SetFooterMargin(10);
-    
-    // Set auto page breaks
     $pdf->SetAutoPageBreak(TRUE, 15);
     
-    // Add a page
+    // Add page
     $pdf->AddPage();
     
-    // Write summary section
-    $pdf->SetFont('helvetica', 'B', 16);
-    $pdf->Cell(0, 10, 'Financial Summary', 0, 1, 'C');
+    // Title
+    $pdf->SetFont('helvetica', 'B', 20);
+    $pdf->Cell(0, 10, 'Financial Report', 0, 1, 'C');
+    $pdf->SetFont('helvetica', '', 12);
+    $pdf->Cell(0, 10, date('Y-m-d'), 0, 1, 'C');
     $pdf->Ln(5);
     
-    // Create summary table
+    // Monthly Summary Section
+    $pdf->SetFont('helvetica', 'B', 16);
+    $pdf->Cell(0, 10, 'Monthly Summary', 0, 1, 'L');
+    $pdf->Ln(5);
+    
+    // Summary boxes with enhanced styling
     $pdf->SetFont('helvetica', '', 12);
-    $pdf->SetFillColor(240, 240, 240);
     
-    // Summary boxes with different colors
+    // Income Box
     $pdf->SetFillColor(230, 247, 230);
-    $pdf->Cell(0, 12, 'Total Income: LKR ' . number_format($summary['income'], 2), 1, 1, 'L', true);
+    $pdf->Cell(0, 15, 'Total Income: LKR ' . number_format($summary['income'], 2), 1, 1, 'L', true);
     
+    // Expenses Box
     $pdf->SetFillColor(252, 230, 230);
-    $pdf->Cell(0, 12, 'Total Expenses: LKR ' . number_format($summary['expenses'], 2), 1, 1, 'L', true);
+    $pdf->Cell(0, 15, 'Total Expenses: LKR ' . number_format($summary['expenses'], 2), 1, 1, 'L', true);
     
+    // Net Balance Box
     $pdf->SetFillColor(230, 240, 250);
-    $pdf->Cell(0, 12, 'Net Balance: LKR ' . number_format($summary['balance'], 2), 1, 1, 'L', true);
+    $pdf->Cell(0, 15, 'Net Balance: LKR ' . number_format($summary['balance'], 2), 1, 1, 'L', true);
     
+    // Monthly Statistics
     $pdf->Ln(10);
-    
-    // Transactions table header
     $pdf->SetFont('helvetica', 'B', 14);
-    $pdf->Cell(0, 10, 'Transaction History', 0, 1, 'C');
+    $pdf->Cell(0, 10, 'Monthly Statistics', 0, 1, 'L');
+    
+    // Calculate monthly statistics
+    $categoryTotals = [];
+    $highestExpense = ['amount' => 0, 'category' => ''];
+    $highestIncome = ['amount' => 0, 'category' => ''];
+    
+    foreach ($transactions as $transaction) {
+        $category = $transaction['category'];
+        $amount = $transaction['amount'];
+        
+        if (!isset($categoryTotals[$category])) {
+            $categoryTotals[$category] = ['income' => 0, 'expense' => 0];
+        }
+        
+        if ($transaction['type'] == 'income') {
+            $categoryTotals[$category]['income'] += $amount;
+            if ($amount > $highestIncome['amount']) {
+                $highestIncome = ['amount' => $amount, 'category' => $category];
+            }
+        } else {
+            $categoryTotals[$category]['expense'] += $amount;
+            if ($amount > $highestExpense['amount']) {
+                $highestExpense = ['amount' => $amount, 'category' => $category];
+            }
+        }
+    }
+    
+    // Display Statistics
+    $pdf->SetFont('helvetica', '', 11);
+    $pdf->Cell(0, 8, 'Highest Income: ' . $highestIncome['category'] . ' (LKR ' . number_format($highestIncome['amount'], 2) . ')', 0, 1, 'L');
+    $pdf->Cell(0, 8, 'Highest Expense: ' . $highestExpense['category'] . ' (LKR ' . number_format($highestExpense['amount'], 2) . ')', 0, 1, 'L');
+    
+    // Category Breakdown
+    $pdf->Ln(5);
+    $pdf->SetFont('helvetica', 'B', 14);
+    $pdf->Cell(0, 10, 'Category Breakdown', 0, 1, 'L');
+    
+    $pdf->SetFont('helvetica', '', 11);
+    foreach ($categoryTotals as $category => $totals) {
+        if ($totals['income'] > 0 || $totals['expense'] > 0) {
+            $pdf->Cell(0, 8, $category . ':', 0, 1, 'L');
+            if ($totals['income'] > 0) {
+                $pdf->Cell(20, 8, '', 0, 0);
+                $pdf->Cell(0, 8, 'Income: LKR ' . number_format($totals['income'], 2), 0, 1, 'L');
+            }
+            if ($totals['expense'] > 0) {
+                $pdf->Cell(20, 8, '', 0, 0);
+                $pdf->Cell(0, 8, 'Expense: LKR ' . number_format($totals['expense'], 2), 0, 1, 'L');
+            }
+        }
+    }
+    
+    // Transaction History
+    $pdf->AddPage();
+    $pdf->SetFont('helvetica', 'B', 16);
+    $pdf->Cell(0, 10, 'Transaction History', 0, 1, 'L');
     $pdf->Ln(5);
     
     // Table headers
     $pdf->SetFont('helvetica', 'B', 11);
     $pdf->SetFillColor(230, 230, 230);
     
-    // Define column widths
+    // Column widths
     $dateWidth = 30;
     $typeWidth = 25;
     $categoryWidth = 35;
     $amountWidth = 35;
     $descriptionWidth = $pdf->GetPageWidth() - $pdf->GetX() - $pdf->GetX() - $dateWidth - $typeWidth - $categoryWidth - $amountWidth;
     
-    // Print table headers
+    // Headers
     $pdf->Cell($dateWidth, 10, 'Date', 1, 0, 'C', true);
     $pdf->Cell($typeWidth, 10, 'Type', 1, 0, 'C', true);
     $pdf->Cell($categoryWidth, 10, 'Category', 1, 0, 'C', true);
     $pdf->Cell($amountWidth, 10, 'Amount', 1, 0, 'C', true);
     $pdf->Cell($descriptionWidth, 10, 'Description', 1, 1, 'C', true);
     
-    // Table content
+    // Transactions
     $pdf->SetFont('helvetica', '', 10);
     foreach ($transactions as $transaction) {
-        $startY = $pdf->GetY();
-        $currentY = $startY;
-        $maxHeight = 0;
-        
-        // Calculate required height for description
         $description = $transaction['description'] ?: 'No description';
-        $descriptionHeight = $pdf->getStringHeight($descriptionWidth, $description);
-        $rowHeight = max(10, $descriptionHeight);
+        $rowHeight = max(10, $pdf->getStringHeight($descriptionWidth, $description));
         
-        // Set fill color based on transaction type
         $pdf->SetFillColor(
             $transaction['type'] == 'income' ? 240 : 255,
             $transaction['type'] == 'income' ? 255 : 240,
             240
         );
         
-        // Print row with uniform height
         $pdf->Cell($dateWidth, $rowHeight, $transaction['date'], 1, 0, 'L', true);
         $pdf->Cell($typeWidth, $rowHeight, ucfirst($transaction['type']), 1, 0, 'L', true);
         $pdf->Cell($categoryWidth, $rowHeight, $transaction['category'], 1, 0, 'L', true);
         $pdf->Cell($amountWidth, $rowHeight, 'LKR ' . number_format($transaction['amount'], 2), 1, 0, 'R', true);
-        
-        // Multi-cell for description to handle line breaks
-        $currentX = $pdf->GetX();
         $pdf->MultiCell($descriptionWidth, $rowHeight, $description, 1, 'L', true);
-        
-        // Move to next line if not already moved by MultiCell
-        if ($pdf->GetY() == $currentY) {
-            $pdf->Ln();
-        }
     }
     
-    // Generate filename with date
-    $filename = 'financial_report_' . date('Y-m-d_His') . '.pdf';
-
-     // Add footer
-     $pdf->Ln(10);
-     $pdf->SetFont('helvetica', 'I', 10);
-     $pdf->Cell(0, 10, 'Generated by Finance Tracker - SLTC Research University', 0, 1, 'C');
-     $pdf->Cell(0, 10, 'Created by Yasas Pasindu Fernando (23da2-0318)', 0, 1, 'C');
+    // Footer
+    $pdf->Ln(10);
+    $pdf->SetFont('helvetica', 'I', 10);
+    $pdf->Cell(0, 10, 'Generated by Finance Tracker - SLTC Research University', 0, 1, 'C');
+    $pdf->Cell(0, 10, 'Created by Yasas Pasindu Fernando (23da2-0318)', 0, 1, 'C');
     
-    // Output PDF
+    // Generate filename and output
+    $filename = 'financial_report_' . date('Y-m-d_His') . '.pdf';
     $pdf->Output($filename, 'D');
+}
+
+function getMonthlyTransactions($userId) {
+    $db = getDB(); // Use getDB() instead of global $conn
+    $sql = "SELECT 
+                DATE_FORMAT(date, '%Y-%m') as month,
+                SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END) as income,
+                SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END) as expenses,
+                SUM(CASE WHEN type = 'income' THEN amount ELSE -amount END) as net
+            FROM transactions 
+            WHERE user_id = ? 
+            GROUP BY DATE_FORMAT(date, '%Y-%m')
+            ORDER BY month DESC
+            LIMIT 12";
+            
+    $stmt = $db->prepare($sql);
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = $result->fetch_all(MYSQLI_ASSOC);
+    
+    $stmt->close();
+    $db->close();
+    
+    return $data;
 }
