@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $category = $_POST['category'];
     $date = $_POST['date'];
     $type = $_POST['type'];
-    $description = !empty(trim($_POST['description'])) ? $_POST['description'] : "No description added";
+    $description = isset($_POST['description']) ? $_POST['description'] : null;
 
     if (addTransaction($userId, $amount, $category, $date, $type, $description)) {
         header("Location: dashboard.php");
@@ -98,8 +98,8 @@ usort($categories, function ($a, $b) {
                     <input 
                         type="date" 
                         name="date" 
-                        value="<?php echo date('Y-m-d'); ?>" 
                         required 
+                        value="<?php echo date('Y-m-d'); ?>" 
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"
                     >
                 </div>

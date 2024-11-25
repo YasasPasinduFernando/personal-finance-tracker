@@ -36,78 +36,113 @@ if (isset($_GET['generate_pdf'])) {
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex flex-col">
 <div class="container mx-auto px-4 py-12 flex-grow">
     <div class="bg-white shadow-2xl rounded-xl p-8">
-        <div class="flex flex-wrap justify-between items-center mb-8">
-            <h1 class="text-4xl font-extrabold text-blue-800 flex items-center mb-4 md:mb-0">
-                <i class="fas fa-chart-line mr-4 text-green-500"></i>
-                Financial Dashboard
-            </h1>
-            <div class="flex flex-wrap justify-center gap-3 sm:justify-between">
-            <!-- Buttons -->
-             
-                <a href="add_transaction.php" class="bg-blue-500 hover:bg-blue-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition duration-300 flex items-center">
-                    <i class="fas fa-plus mr-2"></i>
-                    Add Transaction
-                </a>
-                <a href="?generate_pdf=true" class="bg-green-500 hover:bg-green-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition duration-300 flex items-center">
-                    <i class="fas fa-file-download mr-2"></i>
-                    Download Report
-                </a>
-                <button onclick="openLogoutModal()" class="bg-red-500 hover:bg-red-600 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg transition duration-300 flex items-center">
-                    <i class="fas fa-sign-out-alt mr-2"></i>
-                    Logout
-                </button>
-            
-            </div>
+    <div class="space-y-8 mb-12">
+    <!-- Title Section with Gradient Border Bottom -->
+    <div class="pb-6 border-b border-gradient-to-r from-blue-200 to-purple-200">
+        <h1 class="text-4xl font-extrabold text-blue-800 flex items-center">
+            <i class="fas fa-chart-line mr-4 text-green-500 transform hover:scale-110 transition-transform"></i>
+            Financial Dashboard
+        </h1>
+    </div>
+    
+    <!-- Buttons Section with Shadow and Better Spacing -->
+    <div class="flex flex-wrap gap-4 justify-end">
+        <a href="transactions.php" 
+           class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 
+                  text-white px-6 py-3 rounded-lg transition duration-300 flex items-center shadow-md 
+                  hover:shadow-lg transform hover:-translate-y-0.5">
+            <i class="fas fa-list-ul mr-3"></i>
+            View & Edit Transactions
+        </a>
+        
+        <a href="add_transaction.php" 
+           class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 
+                  text-white px-6 py-3 rounded-lg transition duration-300 flex items-center shadow-md 
+                  hover:shadow-lg transform hover:-translate-y-0.5">
+            <i class="fas fa-plus mr-3"></i>
+            Add Transaction
+        </a>
+        
+        <a href="?generate_pdf=true" 
+           class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 
+                  text-white px-6 py-3 rounded-lg transition duration-300 flex items-center shadow-md 
+                  hover:shadow-lg transform hover:-translate-y-0.5">
+            <i class="fas fa-file-download mr-3"></i>
+            Download Report
+        </a>
+        
+        <button onclick="openLogoutModal()" 
+                class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 
+                       text-white px-6 py-3 rounded-lg transition duration-300 flex items-center shadow-md 
+                       hover:shadow-lg transform hover:-translate-y-0.5">
+            <i class="fas fa-sign-out-alt mr-3"></i>
+            Logout
+        </button>
+    </div>
+</div>
 
-        </div>
 
-        <!-- Financial Summary -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div class="bg-green-50 border-l-4 border-green-500 p-6 rounded-lg shadow-md">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-green-800 font-bold mb-2">Total Income</h2>
-                        <p class="text-3xl text-green-600 font-extrabold">
-                            LKR <?php echo number_format($summary['income'], 2); ?>
-                        </p>
-                    </div>
-                    <i class="fas fa-arrow-up text-green-500 text-3xl"></i>
-                </div>
+
+        <!-- Financial Summary Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Income Card -->
+    <div class="bg-gradient-to-br from-green-50 to-white rounded-2xl p-6 shadow-lg border border-green-100">
+        <div class="flex justify-between items-center">
+            <div>
+                <h2 class="text-emerald-800 text-lg font-semibold mb-3">Total Income</h2>
+                <p class="text-emerald-600 text-3xl font-bold tracking-tight">
+                    LKR <?php echo number_format($summary['income'], 2); ?>
+                </p>
             </div>
-            <div class="bg-red-50 border-l-4 border-red-500 p-6 rounded-lg shadow-md">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-red-800 font-bold mb-2">Total Expenses</h2>
-                        <p class="text-3xl text-red-600 font-extrabold">
-                            LKR <?php echo number_format($summary['expenses'], 2); ?>
-                        </p>
-                    </div>
-                    <i class="fas fa-arrow-down text-red-500 text-3xl"></i>
-                </div>
-            </div>
-            <div class="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-lg shadow-md">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-blue-800 font-bold mb-2">Net Balance</h2>
-                        <p class="text-3xl text-blue-600 font-extrabold">
-                            LKR <?php echo number_format($summary['balance'], 2); ?>
-                        </p>
-                    </div>
-                    <i class="fas fa-balance-scale text-blue-500 text-3xl"></i>
-                </div>
+            <div class="bg-emerald-100 p-3 rounded-xl">
+                <i class="fas fa-arrow-up text-emerald-500 text-2xl"></i>
             </div>
         </div>
+    </div>
+
+    <!-- Expenses Card -->
+    <div class="bg-gradient-to-br from-red-50 to-white rounded-2xl p-6 shadow-lg border border-red-100">
+        <div class="flex justify-between items-center">
+            <div>
+                <h2 class="text-red-800 text-lg font-semibold mb-3">Total Expenses</h2>
+                <p class="text-red-600 text-3xl font-bold tracking-tight">
+                    LKR <?php echo number_format($summary['expenses'], 2); ?>
+                </p>
+            </div>
+            <div class="bg-red-100 p-3 rounded-xl">
+                <i class="fas fa-arrow-down text-red-500 text-2xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Balance Card -->
+    <div class="bg-gradient-to-br from-blue-50 to-white rounded-2xl p-6 shadow-lg border border-blue-100">
+        <div class="flex justify-between items-center">
+            <div>
+                <h2 class="text-blue-800 text-lg font-semibold mb-3">Net Balance</h2>
+                <p class="text-blue-600 text-3xl font-bold tracking-tight">
+                    LKR <?php echo number_format($summary['balance'], 2); ?>
+                </p>
+            </div>
+            <div class="bg-blue-100 p-3 rounded-xl">
+                <i class="fas fa-balance-scale text-blue-500 text-2xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
 
         <!-- Chart -->
-        <div class="mb-8 bg-white shadow-md rounded-lg p-6">
-            <canvas id="transactionChart" class="w-full"></canvas>
-        </div>
-
-        <div class="grid grid-cols-1 gap-6 mb-8">
+<div class="mb-8 bg-white shadow-md rounded-lg p-6">
+    <div class="max-w-3xl mx-auto h-[300px]"> <!-- Added container with constraints -->
+        <canvas id="transactionChart"></canvas>
+    </div>
+</div>
     <!-- Monthly Trend Chart -->
     <div class="bg-white shadow-md rounded-lg p-4 sm:p-6">
         <h2 class="text-lg sm:text-xl font-bold text-gray-800 mb-4">Monthly Trends</h2>
@@ -117,31 +152,37 @@ if (isset($_GET['generate_pdf'])) {
     </div>
 
     <!-- Monthly Summary Table -->
-    <div class="bg-white shadow-md rounded-lg p-4 sm:p-6">
-        <h2 class="text-lg sm:text-xl font-bold text-gray-800 mb-4">Monthly Summary</h2>
-        <div class="overflow-x-auto -mx-4 sm:mx-0"> <!-- Negative margin on mobile to allow full scroll -->
-            <table class="w-full min-w-[600px]"> <!-- Min width to prevent squishing -->
+<div class="bg-white shadow-lg rounded-xl p-4 sm:p-6 mt-8">
+    <h2 class="text-xl font-bold text-blue-900 mb-6 flex items-center">
+        <i class="fas fa-calendar-alt mr-3 text-emerald-500"></i>
+        Monthly Summary
+    </h2>
+    
+    <!-- Desktop Table (Hidden on Mobile) -->
+    <div class="hidden md:block">
+        <div class="overflow-x-auto rounded-lg">
+            <table class="w-full">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-3 sm:px-4 py-2 text-left text-xs sm:text-sm font-semibold text-gray-600">Month</th>
-                        <th class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm font-semibold text-gray-600">Income</th>
-                        <th class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm font-semibold text-gray-600">Expenses</th>
-                        <th class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm font-semibold text-gray-600">Net</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Month</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-600">Income</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-600">Expenses</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-600">Net</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                     <?php foreach ($monthlyData as $month): ?>
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-600 whitespace-nowrap">
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 text-sm text-gray-600 whitespace-nowrap">
                                 <?php echo date('F Y', strtotime($month['month'] . '-01')); ?>
                             </td>
-                            <td class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm text-green-600 font-medium whitespace-nowrap">
+                            <td class="px-6 py-4 text-right text-sm text-emerald-600 font-medium whitespace-nowrap">
                                 LKR <?php echo number_format($month['income'], 2); ?>
                             </td>
-                            <td class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm text-red-600 font-medium whitespace-nowrap">
+                            <td class="px-6 py-4 text-right text-sm text-red-600 font-medium whitespace-nowrap">
                                 LKR <?php echo number_format($month['expenses'], 2); ?>
                             </td>
-                            <td class="px-3 sm:px-4 py-2 text-right text-xs sm:text-sm <?php echo $month['net'] >= 0 ? 'text-green-600' : 'text-red-600'; ?> font-medium whitespace-nowrap">
+                            <td class="px-6 py-4 text-right text-sm <?php echo $month['net'] >= 0 ? 'text-emerald-600' : 'text-red-600'; ?> font-medium whitespace-nowrap">
                                 LKR <?php echo number_format($month['net'], 2); ?>
                             </td>
                         </tr>
@@ -150,124 +191,42 @@ if (isset($_GET['generate_pdf'])) {
             </table>
         </div>
     </div>
-</div>
 
-<!-- Transactions List -->
-<div class="bg-white shadow-lg rounded-2xl overflow-hidden">
-    <div class="p-6 border-b border-gray-200">
-        <h2 class="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Recent Transactions</h2>
-    </div>
-
-    
-    <!-- Desktop Table (hidden on mobile) -->
-    <div class="hidden md:block overflow-x-auto">
-        <table class="w-full">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Category</th>
-                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Date</th>
-                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-600">Description</th>
-                    <th class="px-6 py-4 text-right text-sm font-semibold text-gray-600">Amount</th>
-                    <th class="px-6 py-4 text-right text-sm font-semibold text-gray-600">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-                <?php foreach ($transactions as $transaction): ?>
-                <tr class="hover:bg-gray-50 transition duration-300">
-                    <td class="px-6 py-4">
-                        <span class="<?php echo $transaction['type'] == 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?> px-3 py-1 rounded-full text-sm font-medium">
-                            <?php echo $transaction['category']; ?>
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-600">
-                        <?php echo $transaction['date']; ?>
-                    </td>
-                    <td class="px-6 py-4">
-                        <p class="text-sm text-gray-600 max-w-xs truncate">
-                            <?php echo $transaction['description'] ?: 'No description'; ?>
+    <!-- Mobile Cards (Shown only on Mobile) -->
+    <div class="md:hidden space-y-4">
+        <?php foreach ($monthlyData as $month): ?>
+            <div class="bg-gray-50 rounded-lg p-4 shadow-sm">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="font-semibold text-blue-900">
+                        <?php echo date('F Y', strtotime($month['month'] . '-01')); ?>
+                    </span>
+                    <span class="<?php echo $month['net'] >= 0 ? 'text-emerald-600' : 'text-red-600'; ?> font-bold">
+                        Net: LKR <?php echo number_format($month['net'], 2); ?>
+                    </span>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-500 text-sm mb-1">Income</p>
+                        <p class="text-emerald-600 font-medium">
+                            LKR <?php echo number_format($month['income'], 2); ?>
                         </p>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <span class="<?php echo $transaction['type'] == 'income' ? 'text-green-600' : 'text-red-600'; ?> font-bold">
-                            LKR <?php echo number_format($transaction['amount'], 2); ?>
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                        <a href="edit_transaction.php?id=<?php echo $transaction['id']; ?>" 
-                           class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition duration-300 mr-2">
-                            <i class="fas fa-edit mr-1"></i> Edit
-                        </a>
-                        <button onclick="openDeleteModal(<?php echo $transaction['id']; ?>)"
-                                class="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition duration-300">
-                            <i class="fas fa-trash mr-1"></i> Delete
-                        </button>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
-
-
-
-    <!-- Mobile Cards (visible only on mobile) -->
-    <div class="md:hidden">
-        <?php foreach ($transactions as $transaction): ?>
-        <div class="p-4 border-b border-gray-200">
-            <div class="flex justify-between items-start mb-2">
-                <span class="<?php echo $transaction['type'] == 'income' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'; ?> px-3 py-1 rounded-full text-sm font-medium">
-                    <?php echo $transaction['category']; ?>
-                </span>
-                <span class="<?php echo $transaction['type'] == 'income' ? 'text-green-600' : 'text-red-600'; ?> font-bold">
-                    LKR <?php echo number_format($transaction['amount'], 2); ?>
-                </span>
-            </div>
-            
-            <div class="text-sm text-gray-600 mb-2">
-                <?php echo $transaction['date']; ?>
-            </div>
-            
-            <div class="text-sm text-gray-600 mb-3">
-                <?php echo $transaction['description'] ?: 'No description'; ?>
-            </div>
-            
-            <div class="flex justify-end space-x-2">
-                <a href="edit_transaction.php?id=<?php echo $transaction['id']; ?>" 
-                   class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition duration-300">
-                    <i class="fas fa-edit mr-1"></i> Edit
-                </a>
-                <button onclick="openDeleteModal(<?php echo $transaction['id']; ?>)"
-                        class="inline-flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition duration-300">
-                    <i class="fas fa-trash mr-1"></i> Delete
-                </button>
-            </div>
-        </div>
-        <?php endforeach; ?>
-    </div>
-</div>
-</div>
-</div>
-
-    <!-- Delete Modal -->
-    <div id="deleteModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
-                <div class="bg-white rounded-lg shadow-lg w-96 p-6">
-                    <h2 class="text-xl font-bold mb-4 text-red-600">Confirm Deletion</h2>
-                    <p class="text-gray-700 mb-6">Are you sure you want to delete this transaction? This action cannot be undone.</p>
-                    <div class="flex justify-end space-x-4">
-                        <button 
-                            onclick="closeDeleteModal()" 
-                            class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">
-                            Cancel
-                        </button>
-                        <a 
-                            id="confirmDeleteBtn" 
-                            href="#" 
-                            class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
-                            Delete
-                        </a>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm mb-1">Expenses</p>
+                        <p class="text-red-600 font-medium">
+                            LKR <?php echo number_format($month['expenses'], 2); ?>
+                        </p>
                     </div>
                 </div>
             </div>
+        <?php endforeach; ?>
+    </div>
+</div>
+
+</div>
+</div>
+
+    
 
     <!-- Logout Modal -->
     <div id="logoutModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center hidden z-50">
@@ -316,37 +275,28 @@ if (isset($_GET['generate_pdf'])) {
         // Initialize Chart
         const ctx = document.getElementById('transactionChart').getContext('2d');
         new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Income', 'Expenses'],
-                datasets: [{
-                    label: 'Financial Summary',
-                    data: [<?php echo $summary['income']; ?>, <?php echo $summary['expenses']; ?>],
-                    backgroundColor: ['rgba(34, 197, 94, 0.2)', 'rgba(239, 68, 68, 0.2)'],
-                    borderColor: ['rgb(34, 197, 94)', 'rgb(239, 68, 68)'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+    type: 'bar',
+    data: {
+        labels: ['Income', 'Expenses'],
+        datasets: [{
+            label: 'Financial Summary',
+            data: [<?php echo $summary['income']; ?>, <?php echo $summary['expenses']; ?>],
+            backgroundColor: ['rgba(34, 197, 94, 0.2)', 'rgba(239, 68, 68, 0.2)'],
+            borderColor: ['rgb(34, 197, 94)', 'rgb(239, 68, 68)'],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        maintainAspectRatio: true,
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
             }
-        });
-        // Delete modal functions
-        function openDeleteModal(transactionId) {
-            const modal = document.getElementById('deleteModal');
-            const deleteBtn = document.getElementById('confirmDeleteBtn');
-            deleteBtn.href = `delete_transaction.php?id=${transactionId}`;
-            modal.classList.remove('hidden');
         }
-
-        function closeDeleteModal() {
-            const modal = document.getElementById('deleteModal');
-            modal.classList.add('hidden');
-        }
+    }
+});
+        
 
         // Logout modal functions
         function openLogoutModal() {
@@ -371,6 +321,9 @@ if (isset($_GET['generate_pdf'])) {
                 closeLogoutModal();
             }
         }
+
+        // monthly transaction table fuctions
+
         document.addEventListener('DOMContentLoaded', function() {
     const monthlyData = <?php echo json_encode(array_reverse($monthlyData)); ?>;
     
