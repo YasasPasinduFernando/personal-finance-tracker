@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $category = $_POST['category'];
     $date = $_POST['date'];
     $type = $_POST['type'];
-    $description = isset($_POST['description']) ? $_POST['description'] : null;
+    $description = !empty(trim($_POST['description'])) ? $_POST['description'] : "No description added";
 
     if (addTransaction($userId, $amount, $category, $date, $type, $description)) {
         header("Location: dashboard.php");
@@ -28,7 +28,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 // Get categories for the dropdown
 $categories = getCategories();
-
 
 // Sort the $categories array by 'id' in ascending order
 usort($categories, function ($a, $b) {
@@ -96,8 +95,13 @@ usort($categories, function ($a, $b) {
                     <label class="block text-gray-700 text-sm font-bold mb-2">
                         <i class="fas fa-calendar-alt mr-2 text-purple-600"></i> Date
                     </label>
-                    <input type="date" name="date" required 
-                           class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700">
+                    <input 
+                        type="date" 
+                        name="date" 
+                        value="<?php echo date('Y-m-d'); ?>" 
+                        required 
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700"
+                    >
                 </div>
 
                 <div>

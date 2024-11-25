@@ -157,6 +157,9 @@ function deleteTransaction($id) {
 
 
 function generatePDF($userId, $transactions, $summary) {
+    // Get monthly data
+    $monthlyData = getMonthlyTransactions($userId);
+    
     $pdf = new TCPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
     
     // Document settings
@@ -182,9 +185,9 @@ function generatePDF($userId, $transactions, $summary) {
     $pdf->Cell(0, 10, date('Y-m-d'), 0, 1, 'C');
     $pdf->Ln(5);
     
-    // Monthly Summary Section
+    // Overall Summary Section
     $pdf->SetFont('helvetica', 'B', 16);
-    $pdf->Cell(0, 10, 'Monthly Summary', 0, 1, 'L');
+    $pdf->Cell(0, 10, 'Overall Summary', 0, 1, 'L');
     $pdf->Ln(5);
     
     // Summary boxes with enhanced styling
@@ -202,59 +205,76 @@ function generatePDF($userId, $transactions, $summary) {
     $pdf->SetFillColor(230, 240, 250);
     $pdf->Cell(0, 15, 'Net Balance: LKR ' . number_format($summary['balance'], 2), 1, 1, 'L', true);
     
-    // Monthly Statistics
+    // Monthly Summary Section
     $pdf->Ln(10);
-    $pdf->SetFont('helvetica', 'B', 14);
-    $pdf->Cell(0, 10, 'Monthly Statistics', 0, 1, 'L');
+    $pdf->SetFont('helvetica', 'B', 16);
+    $pdf->Cell(0, 10, 'Monthly Summary', 0, 1, 'L');
+    $pdf->Ln(5);
     
-    // Calculate monthly statistics
+    // Monthly Summary Table Headers
+    $pdf->SetFont('helvetica', 'B', 11);
+    $pdf->SetFillColor(240, 240, 240);
+    
+    // Column widths for monthly summary
+    $monthWidth = 45;
+    $numberWidth = 45;
+    
+    // Monthly Summary Headers
+    $pdf->Cell($monthWidth, 10, 'Month', 1, 0, 'C', true);
+    $pdf->Cell($numberWidth, 10, 'Income', 1, 0, 'C', true);
+    $pdf->Cell($numberWidth, 10, 'Expenses', 1, 0, 'C', true);
+    $pdf->Cell($numberWidth, 10, 'Net', 1, 1, 'C', true);
+    
+    // Monthly Summary Data
+    $pdf->SetFont('helvetica', '', 10);
+    foreach ($monthlyData as $month) {
+        $monthName = date('F Y', strtotime($month['month'] . '-01'));
+        $pdf->Cell($monthWidth, 10, $monthName, 1, 0, 'L');
+        $pdf->Cell($numberWidth, 10, 'LKR ' . number_format($month['income'], 2), 1, 0, 'R');
+        $pdf->Cell($numberWidth, 10, 'LKR ' . number_format($month['expenses'], 2), 1, 0, 'R');
+        
+        // Set color for net amount
+        if ($month['net'] >= 0) {
+            $pdf->SetTextColor(0, 128, 0); // Green for positive
+        } else {
+            $pdf->SetTextColor(255, 0, 0); // Red for negative
+        }
+        $pdf->Cell($numberWidth, 10, 'LKR ' . number_format($month['net'], 2), 1, 1, 'R');
+        $pdf->SetTextColor(0, 0, 0); // Reset to black
+    }
+    
+    // Category Breakdown
+    $pdf->AddPage();
+    $pdf->SetFont('helvetica', 'B', 16);
+    $pdf->Cell(0, 10, 'Category Breakdown', 0, 1, 'L');
+    $pdf->Ln(5);
+    
+    // Calculate and display category breakdown
     $categoryTotals = [];
-    $highestExpense = ['amount' => 0, 'category' => ''];
-    $highestIncome = ['amount' => 0, 'category' => ''];
-    
     foreach ($transactions as $transaction) {
         $category = $transaction['category'];
-        $amount = $transaction['amount'];
-        
         if (!isset($categoryTotals[$category])) {
             $categoryTotals[$category] = ['income' => 0, 'expense' => 0];
         }
-        
         if ($transaction['type'] == 'income') {
-            $categoryTotals[$category]['income'] += $amount;
-            if ($amount > $highestIncome['amount']) {
-                $highestIncome = ['amount' => $amount, 'category' => $category];
-            }
+            $categoryTotals[$category]['income'] += $transaction['amount'];
         } else {
-            $categoryTotals[$category]['expense'] += $amount;
-            if ($amount > $highestExpense['amount']) {
-                $highestExpense = ['amount' => $amount, 'category' => $category];
-            }
+            $categoryTotals[$category]['expense'] += $transaction['amount'];
         }
     }
     
-    // Display Statistics
-    $pdf->SetFont('helvetica', '', 11);
-    $pdf->Cell(0, 8, 'Highest Income: ' . $highestIncome['category'] . ' (LKR ' . number_format($highestIncome['amount'], 2) . ')', 0, 1, 'L');
-    $pdf->Cell(0, 8, 'Highest Expense: ' . $highestExpense['category'] . ' (LKR ' . number_format($highestExpense['amount'], 2) . ')', 0, 1, 'L');
+    // Display category breakdown
+    $pdf->SetFont('helvetica', 'B', 11);
+    $pdf->Cell($monthWidth, 10, 'Category', 1, 0, 'C', true);
+    $pdf->Cell($numberWidth, 10, 'Income', 1, 0, 'C', true);
+    $pdf->Cell($numberWidth, 10, 'Expenses', 1, 1, 'C', true);
     
-    // Category Breakdown
-    $pdf->Ln(5);
-    $pdf->SetFont('helvetica', 'B', 14);
-    $pdf->Cell(0, 10, 'Category Breakdown', 0, 1, 'L');
-    
-    $pdf->SetFont('helvetica', '', 11);
+    $pdf->SetFont('helvetica', '', 10);
     foreach ($categoryTotals as $category => $totals) {
         if ($totals['income'] > 0 || $totals['expense'] > 0) {
-            $pdf->Cell(0, 8, $category . ':', 0, 1, 'L');
-            if ($totals['income'] > 0) {
-                $pdf->Cell(20, 8, '', 0, 0);
-                $pdf->Cell(0, 8, 'Income: LKR ' . number_format($totals['income'], 2), 0, 1, 'L');
-            }
-            if ($totals['expense'] > 0) {
-                $pdf->Cell(20, 8, '', 0, 0);
-                $pdf->Cell(0, 8, 'Expense: LKR ' . number_format($totals['expense'], 2), 0, 1, 'L');
-            }
+            $pdf->Cell($monthWidth, 10, $category, 1, 0, 'L');
+            $pdf->Cell($numberWidth, 10, 'LKR ' . number_format($totals['income'], 2), 1, 0, 'R');
+            $pdf->Cell($numberWidth, 10, 'LKR ' . number_format($totals['expense'], 2), 1, 1, 'R');
         }
     }
     
@@ -264,18 +284,18 @@ function generatePDF($userId, $transactions, $summary) {
     $pdf->Cell(0, 10, 'Transaction History', 0, 1, 'L');
     $pdf->Ln(5);
     
-    // Table headers
+    // Table headers for transactions
     $pdf->SetFont('helvetica', 'B', 11);
     $pdf->SetFillColor(230, 230, 230);
     
-    // Column widths
+    // Column widths for transactions
     $dateWidth = 30;
     $typeWidth = 25;
     $categoryWidth = 35;
     $amountWidth = 35;
     $descriptionWidth = $pdf->GetPageWidth() - $pdf->GetX() - $pdf->GetX() - $dateWidth - $typeWidth - $categoryWidth - $amountWidth;
     
-    // Headers
+    // Transaction headers
     $pdf->Cell($dateWidth, 10, 'Date', 1, 0, 'C', true);
     $pdf->Cell($typeWidth, 10, 'Type', 1, 0, 'C', true);
     $pdf->Cell($categoryWidth, 10, 'Category', 1, 0, 'C', true);
