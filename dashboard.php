@@ -63,9 +63,12 @@ $greeting = getTimeBasedGreeting();
     <title>Finance Tracker - Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
 </head>
+
 <script>
 
         /** Clock Script -
@@ -101,33 +104,39 @@ $greeting = getTimeBasedGreeting();
 <div class="bg-white/80 backdrop-blur-sm shadow-sm">
     <div class="container mx-auto px-4 py-3">
         <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <!-- User Icon and Name -->
-                <i class="fas fa-user-circle text-blue-600"></i>
-                <span class="font-medium text-gray-700">
+            <!-- User Section -->
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-user-circle text-blue-600 text-2xl"></i>
+                <span class="font-medium text-gray-700 text-lg">
                     <?php echo htmlspecialchars($userName); ?>
                 </span>
-                <span class="text-gray-500 ml-2">(<?php echo $greeting; ?>)</span>
+                <span class="text-gray-500 text-sm">(<?php echo $greeting; ?>)</span>
             </div>
+
+            <!-- Actions Section -->
             <div class="flex items-center space-x-6">
                 <!-- Clock Display -->
-                <div class="flex items-center space-x-2">
-    <i class="fas fa-clock text-gray-600"></i> <!-- Remove this line -->
-    <span id="clockHours"></span>
-    <span>:</span>
-    <span id="clockMinutes"></span>
-    <span>:</span>
-    <span id="clockSeconds"></span>
-    <span id="clockSuffix"></span>
-</div>
+                <div class="group relative flex items-center space-x-1 text-gray-700">
+                    <span class="text-gray-600 group-hover:text-blue-600">
+                        <i class="fas fa-clock"></i>
+                    </span>
+                    <span id="clockHours"></span>
+                    <span>:</span>
+                    <span id="clockMinutes"></span>
+                    <span>:</span>
+                    <span id="clockSeconds"></span>
+                    <span id="clockSuffix"></span>
+                </div>
+
                 <!-- Settings Icon -->
-                <a href="user_settings.php" class="text-gray-600 hover:text-blue-600 transition-colors">
-                    <i class="fas fa-cog text-xl hover:rotate-90 transition-transform duration-500"></i>
+                <a href="user_settings.php" class="group relative text-gray-600 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-cog text-xl group-hover:rotate-90 transition-transform duration-500"></i>
                 </a>
             </div>
         </div>
     </div>
 </div>
+
 
 <div class="container mx-auto px-4 py-12 flex-grow">
     <div class="bg-white shadow-2xl rounded-xl p-8">
