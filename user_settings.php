@@ -54,10 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             case 'delete_account':
                 $password = $_POST['confirm_password'];
                 
-                // Verify password
                 if (password_verify($password, $userData['password'])) {
                     $db = getDB();
-                    // Begin transaction
                     $db->begin_transaction();
                     
                     try {
@@ -75,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         
                         $db->commit();
                         
-                        // Clear session and redirect
                         session_destroy();
                         $response['success'] = true;
                         $response['redirect'] = 'login.php';
@@ -103,114 +100,135 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Settings - Finance Tracker</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .settings-card {
-            max-width: 800px;
-            margin: 2rem auto;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .alert {
-            display: none;
-        }
-    </style>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <div class="card settings-card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h3 class="mb-0">Account Settings</h3>
-                <a href="dashboard.php" class="btn btn-outline-secondary btn-sm">
-                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+<body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Main Settings Card -->
+        <div class="bg-white rounded-xl shadow-2xl max-w-3xl mx-auto">
+            <!-- Card Header -->
+            <div class="border-b border-gray-200 p-6 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-blue-800 flex items-center">
+                    <i class="fas fa-user-cog mr-3 text-blue-600"></i>
+                    Account Settings
+                </h1>
+                <a href="dashboard.php" class="flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>
+                    Back to Dashboard
                 </a>
             </div>
-            <div class="card-body">
+
+            <!-- Card Body -->
+            <div class="p-6">
                 <!-- Alert Messages -->
-                <div class="alert alert-success" id="successAlert"></div>
-                <div class="alert alert-danger" id="errorAlert"></div>
-                
+                <div class="mb-6 hidden" id="successAlert">
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative">
+                        <span class="block sm:inline" id="successMessage"></span>
+                    </div>
+                </div>
+                <div class="mb-6 hidden" id="errorAlert">
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                        <span class="block sm:inline" id="errorMessage"></span>
+                    </div>
+                </div>
+
                 <!-- Profile Update Form -->
-                <form id="updateProfileForm">
+                <form id="updateProfileForm" class="space-y-6">
                     <input type="hidden" name="action" value="update_profile">
                     
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" class="form-control" id="username" name="username" 
-                               value="<?php echo htmlspecialchars($userData['username']); ?>" required>
+                    <div class="space-y-2">
+                        <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                        <input type="text" id="username" name="username" 
+                               value="<?php echo htmlspecialchars($userData['username']); ?>" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" class="form-control" id="email" name="email" 
-                               value="<?php echo htmlspecialchars($userData['email']); ?>" required>
+                    <div class="space-y-2">
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" id="email" name="email" 
+                               value="<?php echo htmlspecialchars($userData['email']); ?>" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     
-                    <div class="form-group">
-                        <label for="current_password">Current Password</label>
-                        <input type="password" class="form-control" id="current_password" 
-                               name="current_password" required>
+                    <div class="space-y-2">
+                        <label for="current_password" class="block text-sm font-medium text-gray-700">Current Password</label>
+                        <input type="password" id="current_password" name="current_password" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     
-                    <div class="form-group">
-                        <label for="new_password">New Password (leave blank to keep current)</label>
-                        <input type="password" class="form-control" id="new_password" 
-                               name="new_password">
+                    <div class="space-y-2">
+                        <label for="new_password" class="block text-sm font-medium text-gray-700">
+                            New Password <span class="text-gray-500 text-xs">(leave blank to keep current)</span>
+                        </label>
+                        <input type="password" id="new_password" name="new_password"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Update Profile
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center">
+                        <i class="fas fa-save mr-2"></i>
+                        Update Profile
                     </button>
                 </form>
-                
-                <hr class="my-4">
-                
-                <!-- Delete Account Section -->
-                <div class="text-danger">
-                    <h4>Danger Zone</h4>
-                    <p>Once you delete your account, there is no going back. Please be certain.</p>
-                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
-                        <i class="fas fa-trash"></i> Delete Account
+
+                <!-- Danger Zone -->
+                <div class="mt-12 pt-8 border-t border-gray-200">
+                    <h2 class="text-xl font-bold text-red-600 mb-4 flex items-center">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        Danger Zone
+                    </h2>
+                    <p class="text-gray-600 mb-4">
+                        Once you delete your account, there is no going back. Please be certain.
+                    </p>
+                    <button onclick="openDeleteModal()" 
+                            class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 flex items-center">
+                        <i class="fas fa-trash-alt mr-2"></i>
+                        Delete Account
                     </button>
                 </div>
             </div>
         </div>
     </div>
-    
+
     <!-- Delete Account Modal -->
-    <div class="modal fade" id="deleteAccountModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Delete Account</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-danger">This action cannot be undone. All your data will be permanently deleted.</p>
-                    <form id="deleteAccountForm">
-                        <input type="hidden" name="action" value="delete_account">
-                        <div class="form-group">
-                            <label for="confirm_password">Enter your password to confirm</label>
-                            <input type="password" class="form-control" id="confirm_password" 
-                                   name="confirm_password" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-danger" id="confirmDelete">Delete Account</button>
-                </div>
+    <div id="deleteModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl shadow-lg max-w-md mx-4 w-full">
+            <div class="p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Delete Account</h3>
+                <p class="text-red-600 mb-6">
+                    This action cannot be undone. All your data will be permanently deleted.
+                </p>
+                <form id="deleteAccountForm">
+                    <input type="hidden" name="action" value="delete_account">
+                    <div class="mb-6">
+                        <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-2">
+                            Enter your password to confirm
+                        </label>
+                        <input type="password" id="confirm_password" name="confirm_password" required
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500">
+                    </div>
+                    <div class="flex justify-end space-x-4">
+                        <button type="button" onclick="closeDeleteModal()" 
+                                class="px-4 py-2 text-gray-600 hover:text-gray-800 font-medium">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg transition duration-200">
+                            Delete Account
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const successAlert = document.getElementById('successAlert');
             const errorAlert = document.getElementById('errorAlert');
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            const deleteModal = document.getElementById('deleteModal');
             
             // Update Profile Form
             document.getElementById('updateProfileForm').addEventListener('submit', function(e) {
@@ -218,9 +236,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 submitForm(this);
             });
             
-            // Delete Account
-            document.getElementById('confirmDelete').addEventListener('click', function() {
-                submitForm(document.getElementById('deleteAccountForm'));
+            // Delete Account Form
+            document.getElementById('deleteAccountForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                submitForm(this);
             });
             
             function submitForm(form) {
@@ -236,27 +255,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         if (data.redirect) {
                             window.location.href = data.redirect;
                         } else {
-                            successAlert.textContent = data.message;
-                            successAlert.style.display = 'block';
-                            errorAlert.style.display = 'none';
-                            
-                            // Hide the delete account modal if it's open
-                            const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteAccountModal'));
-                            if (deleteModal) {
-                                deleteModal.hide();
-                            }
+                            successMessage.textContent = data.message;
+                            successAlert.classList.remove('hidden');
+                            errorAlert.classList.add('hidden');
+                            closeDeleteModal();
+                            form.reset();
                         }
                     } else {
-                        errorAlert.textContent = data.message;
-                        errorAlert.style.display = 'block';
-                        successAlert.style.display = 'none';
+                        errorMessage.textContent = data.message;
+                        errorAlert.classList.remove('hidden');
+                        successAlert.classList.add('hidden');
                     }
                 })
                 .catch(error => {
-                    errorAlert.textContent = 'An error occurred. Please try again.';
-                    errorAlert.style.display = 'block';
-                    successAlert.style.display = 'none';
+                    errorMessage.textContent = 'An error occurred. Please try again.';
+                    errorAlert.classList.remove('hidden');
+                    successAlert.classList.add('hidden');
                 });
+            }
+        });
+
+        function openDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            document.getElementById('deleteModal').classList.remove('flex');
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
             }
         });
     </script>
