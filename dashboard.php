@@ -6,6 +6,7 @@ error_reporting(E_ALL);
 // dashboard.php
 session_start();
 include 'database.php';
+date_default_timezone_set('Asia/Colombo'); // Set timezone to Sri Lanka
 
 require_once('tcpdf/tcpdf.php');
 
@@ -14,6 +15,11 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit();
 }
+
+
+$userId = $_SESSION['user_id'];
+$userData = getUserData($userId); //get user data
+$userName = $userData['username']; // Assuming the name field exists in your users table
 
 $userId = $_SESSION['user_id'];
 $transactions = getTransactions($userId);
@@ -27,7 +33,27 @@ if (isset($_GET['generate_pdf'])) {
 }
 
 $hasTransactions = count($transactions) > 0;
+
+
+// Function to get time-based greeting
+function getTimeBasedGreeting() {
+    $hour = date('H');
+    if ($hour >= 5 && $hour < 12) {
+        return "Good Morning";
+    } elseif ($hour >= 12 && $hour < 17) {
+        return "Good Afternoon";
+    } elseif ($hour >= 17 && $hour < 22) {
+        return "Good Evening";
+    } else {
+        return "Good Night";
+    }
+}
+
+$greeting = getTimeBasedGreeting();
+
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -40,10 +66,73 @@ $hasTransactions = count($transactions) > 0;
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
 </head>
+<script>
+
+        /** Clock Script -
+         * this is added because i want to make clock
+         *if i add last script it will not work because of dom is loaded but if this is in upper section this can change body elements by id
+         */
+
+        document.addEventListener("DOMContentLoaded", function () {
+            function updateClock() {
+                const now = new Date();
+                const hours = now.getHours();
+                const minutes = now.getMinutes();
+                const seconds = now.getSeconds();
+
+                const formattedHours = hours % 12 || 12; // Convert to 12-hour format
+                const suffix = hours >= 12 ? 'PM' : 'AM';
+
+                // Update the clock parts
+                document.getElementById('clockHours').textContent = String(formattedHours).padStart(2, '0');
+                document.getElementById('clockMinutes').textContent = String(minutes).padStart(2, '0');
+                document.getElementById('clockSeconds').textContent = String(seconds).padStart(2, '0');
+                document.getElementById('clockSuffix').textContent = ` ${suffix}`;
+            }
+
+            // Initialize and update clock every second
+            updateClock();
+            setInterval(updateClock, 1000);
+        });
+    </script>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex flex-col">
+
+<!-- this is user gerrting and current time section -->
+<div class="bg-white/80 backdrop-blur-sm shadow-sm">
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <!-- User Icon and Name -->
+                <i class="fas fa-user-circle text-blue-600"></i>
+                <span class="font-medium text-gray-700">
+                    <?php echo htmlspecialchars($userName); ?>
+                </span>
+                <span class="text-gray-500 ml-2">(<?php echo $greeting; ?>)</span>
+            </div>
+            <div class="flex items-center space-x-6">
+                <!-- Clock Display -->
+                <div class="flex items-center space-x-2">
+    <i class="fas fa-clock text-gray-600"></i> <!-- Remove this line -->
+    <span id="clockHours"></span>
+    <span>:</span>
+    <span id="clockMinutes"></span>
+    <span>:</span>
+    <span id="clockSeconds"></span>
+    <span id="clockSuffix"></span>
+</div>
+                <!-- Settings Icon -->
+                <a href="user_settings.php" class="text-gray-600 hover:text-blue-600 transition-colors">
+                    <i class="fas fa-cog text-xl hover:rotate-90 transition-transform duration-500"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div class="container mx-auto px-4 py-12 flex-grow">
     <div class="bg-white shadow-2xl rounded-xl p-8">
     <div class="space-y-8 mb-12">
+
     <!-- Title Section with Gradient Border Bottom -->
     <div class="pb-6 border-b border-gradient-to-r from-blue-200 to-purple-200">
         <h1 class="text-4xl font-extrabold text-blue-800 flex items-center">
@@ -436,6 +525,9 @@ document.getElementById('noTransactionModal').addEventListener('click', function
             if (e.target !== this) return;
             e.preventDefault();
         });
+
+
+
 
     </script>
 </body>

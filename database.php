@@ -381,3 +381,15 @@ function getMonthlyTransactions($userId) {
     
     return $data;
 }
+
+//get all user data fro geeting and aswel for user settings
+
+// Add this to database.php
+function getUserData($userId) {
+    $db = getDB();
+    $stmt = $db->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_assoc();
+}
