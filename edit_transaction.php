@@ -71,14 +71,20 @@ $categories = getCategories();
 
             <form method="POST" class="space-y-6">
                 <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2">
-                        Transaction Type
-                    </label>
-                    <select name="type" required class="shadow border rounded w-full py-2 px-3 text-gray-700">
-                        <option value="income" <?php echo ($transaction['type'] == 'income') ? 'selected' : ''; ?>>Income</option>
-                        <option value="expense" <?php echo ($transaction['type'] == 'expense') ? 'selected' : ''; ?>>Expense</option>
-                    </select>
-                </div>
+    <label class="block text-gray-700 text-sm font-bold mb-2 flex items-center justify-between">
+        <span>Transaction Type</span>
+        <!-- Add Custom Transaction Type Button -->
+        <a href="add_transaction_type.php" 
+           class="bg-blue-500 text-white text-sm font-bold py-1 px-2 rounded hover:bg-blue-700 focus:outline-none focus:shadow-outline">
+            <i class="fas fa-plus"></i> Add New Type
+        </a>
+    </label>
+    <select name="type" required class="shadow border rounded w-full py-2 px-3 text-gray-700">
+        <option value="income" <?php echo ($transaction['type'] == 'income') ? 'selected' : ''; ?>>Income</option>
+        <option value="expense" <?php echo ($transaction['type'] == 'expense') ? 'selected' : ''; ?>>Expense</option>
+    </select>
+</div>
+
 
                 <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2">

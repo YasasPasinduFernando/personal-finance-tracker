@@ -48,12 +48,19 @@ if (isset($_GET['generate_pdf'])) {
             <div class="p-6 border-b border-gray-200">
                 
             <div class="mb-8">
+    <div class="mb-8 flex justify-between items-center">
     <!-- Title -->
     <h1 class="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-        Finance Tracker Dashboard
+        All Transactions
     </h1>
     
-    <!-- Simple Back Link -->
+    <!-- PDF Export Button -->
+    <a href="dashboard.php?generate_pdf=1" class="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+        <i class="fas fa-file-pdf mr-2"></i> Export PDF
+    </a>
+</div>
+
+<!-- Simple Back Link -->
     <a href="dashboard.php" class="inline-flex items-center text-blue-500 text-sm font-medium hover:underline mt-2">
         <i class="fas fa-arrow-left mr-2"></i> Back to Dashboard
     </a>
