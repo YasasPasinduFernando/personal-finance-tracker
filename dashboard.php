@@ -64,6 +64,7 @@ $greeting = getTimeBasedGreeting();
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -152,21 +153,22 @@ $greeting = getTimeBasedGreeting();
     
     <!-- Buttons Section with Shadow and Better Spacing -->
     <div class="flex flex-wrap gap-4 justify-end">
+        
+        
+        <a href="add_transaction.php" class="btn-add-transaction">
+            <i class="fas fa-plus mr-3"></i>
+            Add New Transaction
+        </a>
+
+
         <a href="transactions.php" 
            class="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 
                   text-white px-6 py-3 rounded-lg transition duration-300 flex items-center shadow-md 
                   hover:shadow-lg transform hover:-translate-y-0.5">
             <i class="fas fa-list-ul mr-3"></i>
-            View & Edit Transactions
+            View All Transactions
         </a>
-        
-        <a href="add_transaction.php" 
-           class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 
-                  text-white px-6 py-3 rounded-lg transition duration-300 flex items-center shadow-md 
-                  hover:shadow-lg transform hover:-translate-y-0.5">
-            <i class="fas fa-plus mr-3"></i>
-            Add Transaction
-        </a>
+
         
         <a href="?generate_pdf=true" 
            class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 
@@ -530,10 +532,13 @@ $greeting = getTimeBasedGreeting();
 
 // Prevent 0 data the modal from being closed manually
 // Disable close functionality (force user to go to the page)
-document.getElementById('noTransactionModal').addEventListener('click', function(e) {
-            if (e.target !== this) return;
-            e.preventDefault();
-        });
+const noTransactionModal = document.getElementById('emptyDataModal');
+if (noTransactionModal) {
+    noTransactionModal.addEventListener('click', function(e) {
+        if (e.target !== this) return;
+        e.preventDefault();
+    });
+}
 
 
 

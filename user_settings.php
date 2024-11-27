@@ -102,6 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <title>User Settings - Finance Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen">
     <div class="container mx-auto px-4 py-8">
@@ -132,6 +133,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <span class="block sm:inline" id="errorMessage"></span>
                     </div>
                 </div>
+
+
+            <div><a href="add_transaction_type.php" class=" btn-add-transaction  flex items-center text-gray-600 hover:text-blue-600 transition-colors">
+            <i class="fas fa-receipt mr-2"></i>
+            Update Your Personal Transaction Cathegories
+             </a></div>
 
                 <!-- Profile Update Form -->
                 <form id="updateProfileForm" class="space-y-6">

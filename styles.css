@@ -1,5 +1,61 @@
+/* this added to remove :default space comming to tet areas */
 textarea {
     padding: 0 !important;
     margin: 0 !important;
     text-indent: 0 !important;
+}
+
+/* to improve user experince add css animations to that */
+
+/* Base styles for the button */
+.btn-add-transaction {
+    background: linear-gradient(to right, #3b82f6, #2563eb); /* from-blue-500 to-blue-600 */
+    color: white;
+    padding: 12px 24px; /* px-6 py-3 */
+    border-radius: 8px; /* rounded-lg */
+    transition: all 0.3s ease; /* duration-300 */
+    display: flex;
+    align-items: center; /* flex items-center */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
+    text-decoration: none;
+}
+
+/* Hover effects */
+.btn-add-transaction:hover {
+    background: linear-gradient(to right, #2563eb, #1d4ed8); /* hover:from-blue-600 hover:to-blue-700 */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* hover:shadow-lg */
+    transform: translateY(-2px); /* hover:-translate-y-0.5 */
+}
+
+/* Pulse animation for attention */
+.btn-add-transaction {
+    animation: pulse 1.5s infinite;
+}
+
+/* Pop effect on hover */
+.btn-add-transaction:hover {
+    animation: pop 0.3s ease-in-out forwards;
+}
+
+/* Keyframes for the pulse animation */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Keyframes for the pop effect */
+@keyframes pop {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+    }
 }

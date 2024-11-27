@@ -41,32 +41,62 @@ function loginUser($usernameOrEmail, $password) {
 }
 
 
-function getCategories() {
-    $db = getDB();
-    $result = $db->query("SELECT * FROM categories ORDER BY type, name");
-    $categories = [];
-    while ($row = $result->fetch_assoc()) {
-        $categories[] = $row;
+function getCategories($userId) {
+    try {
+        $mysqli = getDB();
+        $stmt = $mysqli->prepare("SELECT id, name, type FROM categories WHERE user_id = ? OR user_id = 0 ORDER BY id ASC");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    } catch (mysqli_sql_exception $e) {
+        return [];
     }
-    $db->close();
-    return $categories;
 }
 
 
 
 function getTransactions($userId) {
-    $db = getDB();
-    $stmt = $db->prepare("SELECT * FROM transactions WHERE user_id = ? ORDER BY date DESC");
-    $stmt->bind_param("i", $userId);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $transactions = [];
-    while ($row = $result->fetch_assoc()) {
-        $transactions[] = $row;
+    try {
+        $mysqli = getDB();
+        $stmt = $mysqli->prepare("
+            SELECT t.id, t.amount, t.category, t.date, t.type, t.description 
+            FROM transactions t 
+            WHERE t.user_id = ? 
+            ORDER BY t.date DESC
+        ");
+        
+        if (!$stmt) {
+            throw new Exception("Prepare failed: " . $mysqli->error);
+        }
+        
+        $stmt->bind_param("i", $userId);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+        
+        $result = $stmt->get_result();
+        $transactions = [];
+        
+        while ($row = $result->fetch_assoc()) {
+            $transactions[] = [
+                'id' => $row['id'],
+                'amount' => $row['amount'],
+                'category' => $row['category'],
+                'date' => $row['date'],
+                'type' => $row['type'],
+                'description' => $row['description'] ?: null
+            ];
+        }
+        
+        $stmt->close();
+        $mysqli->close();
+        return $transactions;
+    } catch (Exception $e) {
+        error_log("Error in getTransactions: " . $e->getMessage());
+        return [];
     }
-    $stmt->close();
-    $db->close();
-    return $transactions;
 }
 
 function getTransactionById($id) {
@@ -408,10 +438,19 @@ function getUserCategories($userId) {
 
 // Function to create a new category for the logged-in user
 function createCategory($userId, $name, $type) {
-    $mysqli = getDB();
-    $stmt = $mysqli->prepare("INSERT INTO categories (name, type, user_id) VALUES (?, ?, ?)");
-    $stmt->bind_param("ssi", $name, $type, $userId);
-    $stmt->execute();
+    try {
+        $mysqli = getDB();
+        $stmt = $mysqli->prepare("INSERT INTO categories (name, type, user_id) VALUES (?, ?, ?)");
+        $stmt->bind_param("ssi", $name, $type, $userId);
+        $stmt->execute();
+        return ['success' => true, 'message' => 'Category created successfully!'];
+    } catch (mysqli_sql_exception $e) {
+        if ($e->getCode() == 1062) { // MySQL duplicate entry error code
+            return ['success' => false, 'message' => 'A category with this name already exists!'];
+        }
+        // Handle other potential errors
+        return ['success' => false, 'message' => 'An error occurred while creating the category.'];
+    }
 }
 
 // Function to update an existing category
