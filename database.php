@@ -393,3 +393,39 @@ function getUserData($userId) {
     $result = $stmt->get_result();
     return $result->fetch_assoc();
 }
+
+// considering after showing to my friend i pand to improve user expirince so give them chance to add custom cthegoris
+
+// Function to get categories for the logged-in user
+function getUserCategories($userId) {
+    $mysqli = getDB();
+    $stmt = $mysqli->prepare("SELECT id, name, type FROM categories WHERE user_id = ?");
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->fetch_all(MYSQLI_ASSOC);
+}
+
+// Function to create a new category for the logged-in user
+function createCategory($userId, $name, $type) {
+    $mysqli = getDB();
+    $stmt = $mysqli->prepare("INSERT INTO categories (name, type, user_id) VALUES (?, ?, ?)");
+    $stmt->bind_param("ssi", $name, $type, $userId);
+    $stmt->execute();
+}
+
+// Function to update an existing category
+function updateCategory($categoryId, $userId, $name, $type) {
+    $mysqli = getDB();
+    $stmt = $mysqli->prepare("UPDATE categories SET name = ?, type = ? WHERE id = ? AND user_id = ?");
+    $stmt->bind_param("ssii", $name, $type, $categoryId, $userId);
+    $stmt->execute();
+}
+
+// Function to delete a category
+function deleteCategory($categoryId, $userId) {
+    $mysqli = getDB();
+    $stmt = $mysqli->prepare("DELETE FROM categories WHERE id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $categoryId, $userId);
+    $stmt->execute();
+}
