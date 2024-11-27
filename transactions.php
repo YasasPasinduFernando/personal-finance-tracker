@@ -25,6 +25,13 @@ if (isset($_GET['generate_pdf'])) {
     generatePDF($userId, $transactions, $summary);
     exit();
 }
+
+// Handle Full Transactions PDF generation
+if (isset($_GET['generate_full_pdf'])) {
+    generateFullSummaryPDF($userId, $transactions); // New function for all transactions
+    exit();
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -54,10 +61,20 @@ if (isset($_GET['generate_pdf'])) {
         All Transactions
     </h1>
     
-    <!-- PDF Export Button -->
-    <a href="dashboard.php?generate_pdf=1" class="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
-        <i class="fas fa-file-pdf mr-2"></i> Export PDF
+    <!-- PDF Export Buttons -->
+<div class="flex space-x-4">
+    <!-- Monthly Summary PDF -->
+    <a href="dashboard.php?generate_pdf=1" 
+       class="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+        <i class="fas fa-file-pdf mr-2"></i> Export Monthly PDF
     </a>
+    
+    <!-- Full Transactions PDF -->
+    <a href="?generate_full_pdf=True" 
+       class="inline-flex items-center text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+        <i class="fas fa-file-pdf mr-2"></i> Export Full PDF
+    </a>
+</div>
 </div>
 
 <!-- Simple Back Link -->

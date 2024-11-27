@@ -32,6 +32,12 @@ if (isset($_GET['generate_pdf'])) {
     exit();
 }
 
+// Handle Full Transactions PDF generation
+if (isset($_GET['generate_full_pdf'])) {
+    generateFullSummaryPDF($userId, $transactions); // New function for all transactions
+    exit();
+}
+
 $hasTransactions = count($transactions) > 0;
 
 
@@ -170,13 +176,14 @@ $greeting = getTimeBasedGreeting();
         </a>
 
         
-        <a href="?generate_pdf=true" 
-           class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 
-                  text-white px-6 py-3 rounded-lg transition duration-300 flex items-center shadow-md 
-                  hover:shadow-lg transform hover:-translate-y-0.5">
-            <i class="fas fa-file-download mr-3"></i>
-            Download Report
-        </a>
+        <a href="#"
+   id="openModal"
+   class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 
+          text-white px-6 py-3 rounded-lg transition duration-300 flex items-center shadow-md 
+          hover:shadow-lg transform hover:-translate-y-0.5">
+    <i class="fas fa-file-download mr-3"></i>
+    Download Report
+</a>
         
         <button onclick="openLogoutModal()" 
                 class="bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 
@@ -326,6 +333,33 @@ $greeting = getTimeBasedGreeting();
 </div>
 
 </div>
+</div>
+
+
+<!--Report Modal -->
+<div id="pdfModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-lg p-6 w-80">
+        <h2 class="text-lg font-bold mb-4">Generate Report</h2>
+        <p class="text-sm text-gray-600 mb-6">Choose the type of PDF you want to generate:</p>
+        <!-- PDF Export Buttons -->
+        <div class="space-y-4">
+            <!-- Monthly Summary PDF -->
+            <a href="?generate_pdf=true" 
+               class="block text-center text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+                <i class="fas fa-file-pdf mr-2"></i> Export Monthly Report
+            </a>
+            <!-- Full Transactions PDF -->
+            <a href="?generate_full_pdf=true" 
+               class="block text-center text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+                <i class="fas fa-file-pdf mr-2"></i> Export Full Report
+            </a>
+        </div>
+        <!-- Close Button -->
+        <button id="closeModal" 
+                class="mt-4 w-full bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium">
+            Cancel
+        </button>
+    </div>
 </div>
 
     
@@ -540,6 +574,26 @@ if (noTransactionModal) {
     });
 }
 
+// Report Modal
+
+// Open Modal
+document.getElementById('openModal').addEventListener('click', function (e) {
+        e.preventDefault();
+        document.getElementById('pdfModal').classList.remove('hidden');
+    });
+
+    // Close Modal
+    document.getElementById('closeModal').addEventListener('click', function () {
+        document.getElementById('pdfModal').classList.add('hidden');
+    });
+
+    // Close modal when clicking outside of it
+    window.addEventListener('click', function (e) {
+        const modal = document.getElementById('pdfModal');
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
 
 
 
