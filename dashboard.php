@@ -385,15 +385,80 @@ $greeting = getTimeBasedGreeting();
             </div>
 
 
-    <!-- Modal 0 Data  -->
+    
+<!-- Modal 0 Data  -->
 <?php if (!$hasTransactions): ?>
-    <div id="emptyDataModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">No Transactions Found</h2>
-            <p class="text-gray-600 mb-6">It seems you have no transaction details. Please add a transaction to proceed.</p>
+    <style>
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes pulseButton {
+            0% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            70% {
+                transform: scale(1.05);
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+
+        .modal-backdrop {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+        }
+
+        .modal-content {
+            animation: modalFadeIn 0.5s ease-out forwards;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        .add-button {
+            animation: pulseButton 2s infinite;
+            transition: all 0.3s ease;
+        }
+
+        .add-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+
+    <div id="emptyDataModal" class="fixed inset-0 flex items-center justify-center modal-backdrop z-50">
+        <div class="bg-white rounded-xl modal-content p-8 w-full max-w-md">
+            <?php 
+                $hour = date('H');
+                $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
+            ?>
+            <div class="text-center mb-6">
+                <h2 class="text-3xl font-bold text-gray-800 mb-2"><?php echo htmlspecialchars($greeting); ?>!</h2>
+                <div class="w-16 h-1 bg-blue-500 mx-auto rounded-full mb-4"></div>
+            </div>
+            
+            <h3 class="text-xl font-semibold text-gray-700 mb-3">Welcome to Your Financial Tracker</h3>
+            <p class="text-gray-600 mb-8 leading-relaxed">
+                It looks like you're just getting started! Add your first transaction to begin tracking your finances and take control of your money.
+            </p>
+            
             <div class="text-center">
-                <a href="add_transaction.php" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                    Add Transaction
+                <a href="add_transaction.php" class="add-button inline-flex items-center justify-center bg-blue-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-600">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Add Your First Transaction
                 </a>
             </div>
         </div>
