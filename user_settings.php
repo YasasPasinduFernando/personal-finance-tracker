@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             <div><a href="add_transaction_type.php" class=" btn-add-transaction  flex items-center text-gray-600 hover:text-blue-600 transition-colors">
             <i class="fas fa-receipt mr-2"></i>
-            Update Your Personal Transaction Cathegories
+            Update Your Personal Transaction Categories
              </a></div>
 
                 <!-- Profile Update Form -->

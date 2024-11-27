@@ -62,19 +62,20 @@ if (isset($_GET['generate_full_pdf'])) {
     </h1>
     
     <!-- PDF Export Buttons -->
-<div class="flex space-x-4">
+<div class="flex flex-wrap space-x-4 space-y-4 sm:space-y-0 sm:flex-nowrap justify-start">
     <!-- Monthly Summary PDF -->
     <a href="dashboard.php?generate_pdf=1" 
-       class="inline-flex items-center text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+       class="inline-flex items-center justify-center text-white bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg w-full sm:w-auto">
         <i class="fas fa-file-pdf mr-2"></i> Export Monthly PDF
     </a>
     
     <!-- Full Transactions PDF -->
     <a href="?generate_full_pdf=True" 
-       class="inline-flex items-center text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg">
+       class="inline-flex items-center justify-center text-white bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-medium shadow-lg w-full sm:w-auto">
         <i class="fas fa-file-pdf mr-2"></i> Export Full PDF
     </a>
 </div>
+
 </div>
 
 <!-- Simple Back Link -->
