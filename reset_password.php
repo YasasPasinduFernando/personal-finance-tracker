@@ -53,13 +53,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $mail->isSMTP();
                 $mail->Host = 'smtp.gmail.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = 'yasasnew@gmail.com';
-                $mail->Password = 'rrcm anhg sobf biby';
+                $mail->Username = 'yasasnedsdw@gmail.com';
+                $mail->Password = 'dstq';
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = 587;
                 
                 // Email content
-                $mail->setFrom('yasasnew@gmail.com', 'Finance Tracker');
+                $mail->setFrom('yasadsdsnew@gmail.com', 'Finance Tracker');
                 $mail->addAddress($userEmail);
                 
                 // Create reset link using dynamic base URL

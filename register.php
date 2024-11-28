@@ -1,25 +1,117 @@
 <?php
-// register.php
+// Enable error reporting for debugging
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Must be at the top of the file
+require_once 'config.php';
+require 'PHPMailer/src/PHPMailer.php';
+require 'PHPMailer/src/SMTP.php';
+require 'PHPMailer/src/Exception.php';
+
 session_start();
-include 'database.php';
 
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+function generateOTP() {
+    // Generate a 6-digit OTP
+    return sprintf("%06d", mt_rand(1, 999999));
+}
+
+function checkUserExists($conn, $email, $username) {
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ? OR username = ?");
+    $stmt->bind_param("ss", $email, $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    return $result->num_rows > 0;
+}
+
+function sendOTPEmail($email, $otp) {
+    $mail = new PHPMailer(true);
+
+    try {
+        // SMTP configuration
+        $mail->isSMTP();
+        $mail->Host = 'smtp.gmail.com';
+        $mail->SMTPAuth = true;
+        $mail->Username = 'yasasnew@gmail.com';
+        $mail->Password = 'idzj luaf cxwn rvtq';
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port = 587;
+        
+        // Email details
+        $mail->setFrom('yasasnew@gmail.com', 'Finance Tracker');
+        $mail->addAddress($email);
+        
+        $mail->isHTML(true);
+        $mail->Subject = 'Your OTP for Registration';
+        $mail->Body = "
+            <h2>Email Verification</h2>
+            <p>Your One-Time Password (OTP) is: <strong>{$otp}</strong></p>
+            <p>This OTP will expire in 10 minutes.</p>
+        ";
+        
+        // Send email and return result
+        return $mail->send();
+    } catch (Exception $e) {
+        // Log the error
+        error_log("Email sending failed: " . $mail->ErrorInfo);
+        return false;
+    }
+}
+
+// Handle POST request
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    // Database connection
+    $conn = getDB();
+    
+    // Check for connection error
+    if ($conn->connect_error) {
+        die("Connection failed: " . $conn->connect_error);
+    }
 
-    if (checkUserExists($email, $name)) {
-        $_SESSION['message'] = "An account with this email or username already exists. Please login.";
-        header("Location: login.php");
+    // Sanitize and validate inputs
+    $name = trim($_POST['name']);
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+
+    // Validate inputs
+    if (empty($name) || empty($email) || empty($password)) {
+        $_SESSION['error'] = "All fields are required.";
+        header("Location: register.php");
         exit();
     }
-    
 
-    if (registerUser($name, $email, $password)) {
-        $_SESSION['message'] = "Registration successful! Please login.";
-        header("Location: login.php");
+    // Check if user already exists
+    if (checkUserExists($conn, $email, $name)) {
+        $_SESSION['error'] = "An account with this email or username already exists.";
+        $conn->close();
+        header("Location: register.php");
+        exit();
+    }
+
+    // Generate and send OTP
+    $otp = generateOTP();
+    
+    // Send OTP email
+    if (sendOTPEmail($email, $otp)) {
+        // Store registration details in session
+        $_SESSION['reg_name'] = $name;
+        $_SESSION['reg_email'] = $email;
+        $_SESSION['reg_password'] = password_hash($password, PASSWORD_DEFAULT);
+        $_SESSION['otp'] = $otp;
+        $_SESSION['otp_created_at'] = time();
+        $_SESSION['registration_step'] = 'verify_otp';
+
+        $conn->close();
+        header("Location: verify_otp.php");
+        exit();
     } else {
-        $_SESSION['error'] = "Registration failed. Please try again.";
+        $_SESSION['error'] = "Failed to send OTP. Please try again.";
+        $conn->close();
+        header("Location: register.php");
+        exit();
     }
 }
 ?>
@@ -32,7 +124,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Finance Tracker - Register</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex flex-col items-center justify-center">
     <div class="w-full max-w-md">
@@ -42,10 +133,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 Register
             </h1>
 
-            <?php if (isset($_SESSION['error'])): ?>
+            <?php 
+            // Display any error messages
+            if (isset($_SESSION['error'])): ?>
                 <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 flex items-center">
                     <i class="fas fa-exclamation-circle mr-2"></i>
-                    <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                    <?php 
+                    echo $_SESSION['error']; 
+                    unset($_SESSION['error']); 
+                    ?>
                 </div>
             <?php endif; ?>
 
@@ -65,16 +161,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </div>
                 <div>
-    <div class="flex items-center bg-purple-50 rounded-lg p-2">
-        <i class="fas fa-lock text-purple-600 mr-3"></i>
-        <input type="password" name="password" id="password" placeholder="Password" required 
-               class="bg-transparent w-full focus:outline-none text-purple-800 placeholder-purple-600">
-        <button type="button" onclick="togglePassword()" class="text-purple-600 focus:outline-none">
-            <i class="fas fa-eye" id="togglePassword"></i>
-        </button>
-    </div>
-</div>
-                <button type="submit" class=" btn-add-transaction bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition duration-300 w-full flex items-center justify-center">
+                    <div class="flex items-center bg-purple-50 rounded-lg p-2">
+                        <i class="fas fa-lock text-purple-600 mr-3"></i>
+                        <input type="password" name="password" id="password" placeholder="Password" required 
+                               class="bg-transparent w-full focus:outline-none text-purple-800 placeholder-purple-600">
+                        <button type="button" onclick="togglePassword()" class="text-purple-600 focus:outline-none">
+                            <i class="fas fa-eye" id="togglePassword"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-add-transaction bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition duration-300 w-full flex items-center justify-center">
                     <i class="fas fa-user-plus mr-2"></i>
                     Register
                 </button>
@@ -91,44 +187,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </div>
 
-    <footer class="bg-gray-800 text-white py-6 w-full mt-8">
-        <div class="container mx-auto text-center">
-            <p class="mb-2">
-                Created By Yasas Pasindu Fernando (23da2-0318)
-            </p>
-            <p class="text-sm text-gray-400">
-                @ SLTC Research University
-            </p>
-            <div class="mt-4 text-gray-400 text-2xl">
-                <a href="https://github.com/YasasPasinduFernando" target="_blank" class="mx-2 hover:text-white">
-                    <i class="fab fa-github"></i>
-                </a>
-                <a href="https://www.linkedin.com/in/yasas-pasindu-fernando-893b292b2/" target="_blank" class="mx-2 hover:text-white">
-                    <i class="fab fa-linkedin"></i>
-                </a>
-                <a href="https://x.com/YPasiduFernando?s=09" target="_blank" class="mx-2 hover:text-white">
-                    <i class="fab fa-twitter"></i>
-                </a>
-            </div>
-        </div>
-    </footer>
-
     <script>
-function togglePassword() {
-    const passwordInput = document.getElementById('password');
-    const toggleIcon = document.getElementById('togglePassword');
-    
-    if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        toggleIcon.classList.remove('fa-eye');
-        toggleIcon.classList.add('fa-eye-slash');
-    } else {
-        passwordInput.type = 'password';
-        toggleIcon.classList.remove('fa-eye-slash');
-        toggleIcon.classList.add('fa-eye');
+    function togglePassword() {
+        const passwordInput = document.getElementById('password');
+        const toggleIcon = document.getElementById('togglePassword');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
     }
-}
-</script>
-
+    </script>
 </body>
 </html>
