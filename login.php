@@ -61,12 +61,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </div>
                 <div>
-                    <div class="flex items-center bg-green-50 rounded-lg p-2">
-                        <i class="fas fa-lock text-green-600 mr-3"></i>
-                        <input type="password" name="password" placeholder="Password" required 
-                               class="bg-transparent w-full focus:outline-none text-green-800 placeholder-green-600">
-                    </div>
-                </div>
+    <div class="flex items-center bg-green-50 rounded-lg p-2">
+        <i class="fas fa-lock text-green-600 mr-3"></i>
+        <input type="password" name="password" id="loginPassword" placeholder="Password" required 
+               class="bg-transparent w-full focus:outline-none text-green-800 placeholder-green-600">
+        <button type="button" onclick="toggleLoginPassword()" class="text-green-600 focus:outline-none">
+            <i class="fas fa-eye" id="toggleLoginPassword"></i>
+        </button>
+    </div>
+</div>
                 <button type="submit" class=" btn-add-transaction bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition duration-300 w-full flex items-center justify-center">
                     <i class="fas fa-sign-in-alt mr-2"></i>
                     Login
@@ -105,5 +108,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
     </footer>
+    <script>
+function toggleLoginPassword() {
+    const passwordInput = document.getElementById('loginPassword');
+    const toggleIcon = document.getElementById('toggleLoginPassword');
+    
+    if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+    } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+    }
+}
+</script>
+
 </body>
 </html>
