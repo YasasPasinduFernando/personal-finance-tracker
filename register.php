@@ -3,7 +3,6 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Must be at the top of the file
 require_once 'config.php';
 require 'PHPMailer/src/PHPMailer.php';
 require 'PHPMailer/src/SMTP.php';
@@ -15,8 +14,11 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 function generateOTP() {
-    // Generate a 6-digit OTP
     return sprintf("%06d", mt_rand(1, 999999));
+}
+
+function generateVerificationToken() {
+    return bin2hex(random_bytes(32));
 }
 
 function checkUserExists($conn, $email, $username) {
@@ -27,11 +29,29 @@ function checkUserExists($conn, $email, $username) {
     return $result->num_rows > 0;
 }
 
-function sendOTPEmail($email, $otp) {
+function storeVerificationData($conn, $email, $username, $hashedPassword, $verificationToken) {
+    $stmt = $conn->prepare("INSERT INTO pending_verifications 
+                           (email, username, password_hash, verification_token, created_at, expires_at) 
+                           VALUES (?, ?, ?, ?, NOW(), DATE_ADD(NOW(), INTERVAL 24 HOUR))");
+    $stmt->bind_param("ssss", $email, $username, $hashedPassword, $verificationToken);
+    return $stmt->execute();
+}
+
+function getBaseURL() {
+    $host = $_SERVER['HTTP_HOST'];
+    if ($host === 'localhost' || $host === 'localhost:3307') {
+        return 'http://localhost/finance_tracker';
+    } else {
+        return 'https://financetracker.great-site.net';
+    }
+}
+
+function sendOTPEmail($email, $otp, $name, $verificationToken) {
     $mail = new PHPMailer(true);
+    $baseURL = getBaseURL();
+    $verificationLink = $baseURL . "/verify_account.php?token=" . $verificationToken;
 
     try {
-        // SMTP configuration
         $mail->isSMTP();
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
@@ -40,22 +60,73 @@ function sendOTPEmail($email, $otp) {
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
         
-        // Email details
         $mail->setFrom('yasasnew@gmail.com', 'Finance Tracker');
         $mail->addAddress($email);
         
         $mail->isHTML(true);
-        $mail->Subject = 'Your OTP for Registration';
+        $mail->Subject = 'Welcome to Finance Tracker - Verify Your Account';
+        
+        // Your existing email template
         $mail->Body = "
-            <h2>Email Verification</h2>
-            <p>Your One-Time Password (OTP) is: <strong>{$otp}</strong></p>
-            <p>This OTP will expire in 10 minutes.</p>
+        <!DOCTYPE html>
+        <html lang='en'>
+        <head>
+            <meta charset='UTF-8'>
+            <style>
+                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                .header { background-color: #4A90E2; color: white; padding: 20px; text-align: center; }
+                .content { padding: 20px; background-color: #f4f4f4; }
+                .footer { text-align: center; color: #777; margin-top: 20px; }
+                .btn { 
+                    display: inline-block; 
+                    padding: 10px 20px; 
+                    background-color: #4A90E2; 
+                    color: white; 
+                    text-decoration: none; 
+                    border-radius: 5px; 
+                    margin: 20px 0;
+                }
+            </style>
+        </head>
+        <body>
+            <div class='container'>
+                <div class='header'>
+                    <h1>Welcome to Finance Tracker</h1>
+                </div>
+                <div class='content'>
+                    <h2>Hi " . htmlspecialchars($name) . ",</h2>
+                    
+                    <p>Simplify your financial journey. Track, manage, and grow your money with ease.</p>
+                    
+                    <h3>What You Can Do:</h3>
+                    <ul>
+                        <li>Monitor your income and expenses in real-time</li>
+                        <li>Set financial goals and track your progress</li>
+                        <li>Secure and private financial management</li>
+                    </ul>
+                    
+                    <p>Your One-Time Password (OTP) is: <strong>{$otp}</strong></p>
+                    
+                    <p>To complete your registration, please verify your email by clicking the button below:</p>
+                    
+                    <a href='{$verificationLink}' class='btn'>Verify My Account</a>
+                    
+                    <p>If you didn't create an account, please ignore this email.</p>
+                    
+                    <p>The OTP and verification link will expire in 24 hours.</p>
+                </div>
+                <div class='footer'>
+                    <p>© 2024 Finance Tracker. All rights reserved.</p>
+                    <p>Powered by SLTC Research University</p>
+                </div>
+            </div>
+        </body>
+        </html>
         ";
         
-        // Send email and return result
         return $mail->send();
     } catch (Exception $e) {
-        // Log the error
         error_log("Email sending failed: " . $mail->ErrorInfo);
         return false;
     }
@@ -63,27 +134,22 @@ function sendOTPEmail($email, $otp) {
 
 // Handle POST request
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Database connection
     $conn = getDB();
     
-    // Check for connection error
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
 
-    // Sanitize and validate inputs
     $name = trim($_POST['name']);
     $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    // Validate inputs
     if (empty($name) || empty($email) || empty($password)) {
         $_SESSION['error'] = "All fields are required.";
         header("Location: register.php");
         exit();
     }
 
-    // Check if user already exists
     if (checkUserExists($conn, $email, $name)) {
         $_SESSION['error'] = "An account with this email or username already exists.";
         $conn->close();
@@ -91,15 +157,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
-    // Generate and send OTP
+    // Generate OTP and verification token
     $otp = generateOTP();
-    
-    // Send OTP email
-    if (sendOTPEmail($email, $otp)) {
-        // Store registration details in session
+    $verificationToken = generateVerificationToken();
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+    // Store verification data
+
+if (storeVerificationData($conn, $email, $name, $hashedPassword, $verificationToken)) {
+    // Send email with both OTP and verification link
+    if (sendOTPEmail($email, $otp, $name, $verificationToken)) {
+        // Store ALL necessary registration data in session
         $_SESSION['reg_name'] = $name;
         $_SESSION['reg_email'] = $email;
-        $_SESSION['reg_password'] = password_hash($password, PASSWORD_DEFAULT);
+        $_SESSION['reg_password'] = $hashedPassword; // Store the hashed password
         $_SESSION['otp'] = $otp;
         $_SESSION['otp_created_at'] = time();
         $_SESSION['registration_step'] = 'verify_otp';
@@ -108,12 +179,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         header("Location: verify_otp.php");
         exit();
     } else {
-        $_SESSION['error'] = "Failed to send OTP. Please try again.";
-        $conn->close();
-        header("Location: register.php");
-        exit();
+        $_SESSION['error'] = "Failed to send verification email. Please try again.";
     }
 }
+    
+    $conn->close();
+    header("Location: register.php");
+    exit();
+}
+
+// Your existing HTML code remains the same...
 ?>
 
 <!DOCTYPE html>
@@ -124,6 +199,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Finance Tracker - Register</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex flex-col items-center justify-center">
     <div class="w-full max-w-md">
@@ -186,6 +262,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
     </div>
+
+    <footer class="bg-gray-800 text-white py-6 w-full mt-8">
+        <div class="container mx-auto text-center">
+            <p class="mb-2">
+                Created By Yasas Pasindu Fernando (23da2-0318)
+            </p>
+            <p class="text-sm text-gray-400">
+                @ SLTC Research University
+            </p>
+            <div class="mt-4 text-gray-400 text-2xl">
+                <a href="https://github.com/YasasPasinduFernando" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/yasas-pasindu-fernando-893b292b2/" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="https://x.com/YPasiduFernando?s=09" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
 
     <script>
     function togglePassword() {

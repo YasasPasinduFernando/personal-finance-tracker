@@ -53,13 +53,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $mail->isSMTP();
                 $mail->Host = 'smtp.gmail.com';
                 $mail->SMTPAuth = true;
-                $mail->Username = 'yasasnedsdw@gmail.com';
-                $mail->Password = 'dstq';
+                $mail->Username = 'yasasnew@gmail.com';
+                $mail->Password = 'idzj luaf cxwn rvtq';
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = 587;
                 
                 // Email content
-                $mail->setFrom('yasadsdsnew@gmail.com', 'Finance Tracker');
+                $mail->setFrom('yasasnew@gmail.com', 'Finance Tracker');
                 $mail->addAddress($userEmail);
                 
                 // Create reset link using dynamic base URL
@@ -149,5 +149,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
     </div>
+
+    <footer class="bg-gray-800 text-white py-6 w-full mt-8">
+        <div class="container mx-auto text-center">
+            <p class="mb-2">
+                Created By Yasas Pasindu Fernando (23da2-0318)
+            </p>
+            <p class="text-sm text-gray-400">
+                @ SLTC Research University
+            </p>
+            <div class="mt-4 text-gray-400 text-2xl">
+                <a href="https://github.com/YasasPasinduFernando" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/yasas-pasindu-fernando-893b292b2/" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="https://x.com/YPasiduFernando?s=09" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
 </body>
 </html>

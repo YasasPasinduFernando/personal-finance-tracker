@@ -97,21 +97,40 @@ if (time() - $_SESSION['otp_created_at'] > $otp_expiration) {
 }
 
 function registerUser($conn, $name, $email, $password) {
-    // Prepare SQL statement
-    $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
-    
-    // Bind parameters
-    $stmt->bind_param("sss", $name, $email, $password);
-    
-    // Execute and return result
-    return $stmt->execute();
+    try {
+        // Start transaction
+        $conn->begin_transaction();
+
+        // Insert user
+        $stmt = $conn->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $name, $email, $password);
+        
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to create user account");
+        }
+
+        // Update any pending verifications
+        $updateStmt = $conn->prepare("UPDATE pending_verifications 
+                                    SET is_verified = 1 
+                                    WHERE email = ?");
+        $updateStmt->bind_param("s", $email);
+        $updateStmt->execute();
+
+        // Commit transaction
+        $conn->commit();
+        return true;
+
+    } catch (Exception $e) {
+        // Rollback on error
+        $conn->rollback();
+        error_log("Registration error: " . $e->getMessage());
+        return false;
+    }
 }
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Database connection
     $conn = getDB();
     
-    // Check for connection error
     if ($conn->connect_error) {
         die("Connection failed: " . $conn->connect_error);
     }
@@ -120,40 +139,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Verify OTP
     if ($entered_otp == $_SESSION['otp']) {
-        // OTP is correct, complete registration
+        // Verify all required session data exists
+        if (!isset($_SESSION['reg_name']) || !isset($_SESSION['reg_email']) || !isset($_SESSION['reg_password'])) {
+            $_SESSION['error'] = "Registration session expired. Please register again.";
+            header("Location: register.php");
+            exit();
+        }
+
         $name = $_SESSION['reg_name'];
         $email = $_SESSION['reg_email'];
         $password = $_SESSION['reg_password'];
 
         // Register user
         if (registerUser($conn, $name, $email, $password)) {
-            // Clear session data
-            unset($_SESSION['registration_step']);
-            unset($_SESSION['reg_name']);
-            unset($_SESSION['reg_email']);
-            unset($_SESSION['reg_password']);
-            unset($_SESSION['otp']);
-            unset($_SESSION['otp_created_at']);
-
-            $conn->close();
-
-            // Set success message
-            $_SESSION['message'] = "Registration successful! Please login.";
+            // Store the username/email for auto-fill
+            $_SESSION['last_username'] = $name; // or $email if you prefer
+            
+            // Store success message
+            $_SESSION['message'] = "Account verified successfully! You can now login with your credentials.";
+            
+            // Clear registration session data
+            $sessionVars = [
+                'registration_step', 'reg_name', 'reg_email', 
+                'reg_password', 'otp', 'otp_created_at'
+            ];
+            foreach ($sessionVars as $var) {
+                unset($_SESSION[$var]);
+            }
+        
             header("Location: login.php");
-            exit();
-        } else {
-            $conn->close();
-            $_SESSION['error'] = "Registration failed. Please try again.";
-            header("Location: register.php");
             exit();
         }
     } else {
-        $conn->close();
         $_SESSION['error'] = "Invalid OTP. Please try again.";
         header("Location: verify_otp.php");
         exit();
     }
-}
+    $conn->close();}
 ?>
 
 <!DOCTYPE html>
@@ -188,7 +210,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <?php endif; ?>
 
             <p class="text-gray-600 text-center mb-4">
-    An OTP has been sent to <?php echo $_SESSION['reg_email']; ?>. 
+    An <b>OTP and a verification link</b> has been sent to <b> <?php echo $_SESSION['reg_email']; ?></b>. 
     Please check your email 
     <span style="color: blue; font-weight: bold;">Inbox</span> or 
     <span style="color: red; font-weight: bold;">Spam</span> 
@@ -236,5 +258,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
         </div>
     </div>
+
+    <footer class="bg-gray-800 text-white py-6 w-full mt-8">
+        <div class="container mx-auto text-center">
+            <p class="mb-2">
+                Created By Yasas Pasindu Fernando (23da2-0318)
+            </p>
+            <p class="text-sm text-gray-400">
+                @ SLTC Research University
+            </p>
+            <div class="mt-4 text-gray-400 text-2xl">
+                <a href="https://github.com/YasasPasinduFernando" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/yasas-pasindu-fernando-893b292b2/" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="https://x.com/YPasiduFernando?s=09" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
