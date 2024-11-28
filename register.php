@@ -56,7 +56,7 @@ function sendOTPEmail($email, $otp, $name, $verificationToken) {
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
         $mail->Username = 'yasasnew@gmail.com';
-        $mail->Password = 'idzj luaf cxwn rvtq';
+        $mail->Password = ' cxwn rvtq';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
         
@@ -64,66 +64,71 @@ function sendOTPEmail($email, $otp, $name, $verificationToken) {
         $mail->addAddress($email);
         
         $mail->isHTML(true);
-        $mail->Subject = 'Welcome to Finance Tracker - Verify Your Account';
         
-        // Your existing email template
-        $mail->Body = "
-        <!DOCTYPE html>
-        <html lang='en'>
-        <head>
-            <meta charset='UTF-8'>
-            <style>
-                body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background-color: #4A90E2; color: white; padding: 20px; text-align: center; }
-                .content { padding: 20px; background-color: #f4f4f4; }
-                .footer { text-align: center; color: #777; margin-top: 20px; }
-                .btn { 
-                    display: inline-block; 
-                    padding: 10px 20px; 
-                    background-color: #4A90E2; 
-                    color: white; 
-                    text-decoration: none; 
-                    border-radius: 5px; 
-                    margin: 20px 0;
-                }
-            </style>
-        </head>
-        <body>
-            <div class='container'>
-                <div class='header'>
-                    <h1>Welcome to Finance Tracker</h1>
-                </div>
-                <div class='content'>
-                    <h2>Hi " . htmlspecialchars($name) . ",</h2>
-                    
-                    <p>Simplify your financial journey. Track, manage, and grow your money with ease.</p>
-                    
-                    <h3>What You Can Do:</h3>
-                    <ul>
-                        <li>Monitor your income and expenses in real-time</li>
-                        <li>Set financial goals and track your progress</li>
-                        <li>Secure and private financial management</li>
-                    </ul>
-                    
-                    <p>Your One-Time Password (OTP) is: <strong>{$otp}</strong></p>
-                    
-                    <p>To complete your registration, please verify your email by clicking the button below:</p>
-                    
-                    <a href='{$verificationLink}' class='btn'>Verify My Account</a>
-                    
-                    <p>If you didn't create an account, please ignore this email.</p>
-                    
-                    <p>The OTP and verification link will expire in 24 hours.</p>
-                </div>
-                <div class='footer'>
-                    <p>© 2024 Finance Tracker. All rights reserved.</p>
-                    <p>Powered by SLTC Research University</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        ";
+        $mail->Subject = "Verify Your Finance Tracker Account"; // Clear and professional subject line
+
+$mail->Body = "
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+    <meta charset='UTF-8'>
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; margin: 0; padding: 0; line-height: 1.6; }
+        .container { max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; background-color: #f9f9f9; }
+        .header { background-color: #4A90E2; color: white; text-align: center; padding: 15px; }
+        .content { padding: 20px; }
+        .btn {
+            display: inline-block; 
+            padding: 10px 20px; 
+            background-color: #4A90E2; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            font-weight: bold;
+        }
+        .footer { text-align: center; color: #777; font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>Finance Tracker</h1>
+        </div>
+        <div class='content'>
+            <p>Hi {$name},</p>
+            <p>Welcome to Finance Tracker! Simplify your financial journey with ease.</p>
+            <p><strong>What You Can Do:</strong></p>
+            <ul>
+                <li>Monitor your income and expenses in real-time.</li>
+                <li>Set financial goals and track progress.</li>
+                <li>Enjoy secure and private financial management.</li>
+            </ul>
+            <p><strong>Your OTP: {$otp}</strong><br>(Expires in 24 hours)</p>
+            <p>Verify your account by clicking the button below:</p>
+            <p><a href='{$verificationLink}' class='btn'>Verify My Account</a></p>
+            <p>If you didn’t create this account, please ignore this email.</p>
+        </div>
+        <div class='footer'>
+            <p>© 2024 Finance Tracker. All rights reserved.</p>
+            <p>Powered by SLTC Research University</p>
+        </div>
+    </div>
+</body>
+</html>
+";
+
+$mail->AltBody = "Hi {$name},\n\n
+Welcome to Finance Tracker! Simplify your financial journey with ease.\n\n
+What You Can Do:\n
+- Monitor your income and expenses in real-time.\n
+- Set financial goals and track progress.\n
+- Enjoy secure and private financial management.\n\n
+Your OTP: {$otp} (Expires in 24 hours)\n\n
+To verify your account, click the following link:\n
+{$verificationLink}\n\n
+If you didn’t create this account, please ignore this email.\n\n
+© 2024 Finance Tracker. Powered by SLTC Research University.";
+
         
         return $mail->send();
     } catch (Exception $e) {
@@ -200,22 +205,6 @@ if (storeVerificationData($conn, $email, $name, $hashedPassword, $verificationTo
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
-    <style>
-        footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: #1f2937; /* This is the gray-800 color you're using */
-    color: white;
-    padding: 1.5rem 0; /* py-6 equivalent */
-    z-index: 10;
-}
-
-.w-full.max-w-md {
-    margin-bottom: 200px;
-}
-    </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex flex-col items-center justify-center">
     <div class="w-full max-w-md">
