@@ -6,6 +6,7 @@
     <title>Personal Finance Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex flex-col">
     <!-- Navigation Bar -->
@@ -21,7 +22,7 @@
                         <i class="fas fa-sign-in-alt mr-2"></i>
                         Login
                     </a>
-                    <a href="register.php" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-300 flex items-center">
+                    <a href="register.php" class="btn-add-transaction bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg transition duration-300 flex items-center">
                         <i class="fas fa-user-plus mr-2"></i>
                         Register
                     </a>
@@ -94,7 +95,7 @@
                 <button onclick="closeModal()" class="px-4 py-2 text-gray-600 hover:text-gray-800">
                     Maybe Later
                 </button>
-                <a href="register.php" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded transition duration-300">
+                <a href="register.php" class=" btn-add-transaction bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded transition duration-300">
                     Register Now
                 </a>
             </div>
