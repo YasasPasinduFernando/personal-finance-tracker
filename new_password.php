@@ -57,6 +57,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <title>Set New Password - Finance Tracker</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #1f2937; /* This is the gray-800 color you're using */
+    color: white;
+    padding: 1.5rem 0; /* py-6 equivalent */
+    z-index: 10;
+}
+
+.w-full.max-w-md {
+    margin-bottom: 200px;
+}
+    </style>
 </head>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex flex-col items-center justify-center">
     <div class="w-full max-w-md">

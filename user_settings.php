@@ -229,6 +229,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 
+    <footer class="bg-gray-800 text-white py-6 w-full mt-8">
+        <div class="container mx-auto text-center">
+            <p class="mb-2">
+                Created By Yasas Pasindu Fernando (23da2-0318)
+            </p>
+            <p class="text-sm text-gray-400">
+                @ SLTC Research University
+            </p>
+            <div class="mt-4 text-gray-400 text-2xl">
+                <a href="https://github.com/YasasPasinduFernando" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/yasas-pasindu-fernando-893b292b2/" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="https://x.com/YPasiduFernando?s=09" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const successAlert = document.getElementById('successAlert');
