@@ -16,6 +16,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     } else {
         $_SESSION['error'] = "Invalid username/email or password";
+        $_SESSION['login_error'] = true; // Add this line to track password error
+        $_SESSION['last_username'] = $usernameOrEmail; // Store the username/email
+        header("Location: login.php");
+        exit();
     }
 }
 ?>
@@ -60,16 +64,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                class="bg-transparent w-full focus:outline-none text-blue-800 placeholder-blue-600">
                     </div>
                 </div>
+
+
                 <div>
-    <div class="flex items-center bg-green-50 rounded-lg p-2">
-        <i class="fas fa-lock text-green-600 mr-3"></i>
-        <input type="password" name="password" id="loginPassword" placeholder="Password" required 
-               class="bg-transparent w-full focus:outline-none text-green-800 placeholder-green-600">
-        <button type="button" onclick="toggleLoginPassword()" class="text-green-600 focus:outline-none">
+    <div class="flex items-center <?php echo isset($_SESSION['login_error']) ? 'bg-red-50 border-red-500 border' : 'bg-green-50'; ?> rounded-lg p-2">
+        <i class="fas fa-lock <?php echo isset($_SESSION['login_error']) ? 'text-red-600' : 'text-green-600'; ?> mr-3"></i>
+        <input type="password" 
+               name="password" 
+               id="loginPassword" 
+               placeholder="Password" 
+               required 
+               class="bg-transparent w-full focus:outline-none <?php echo isset($_SESSION['login_error']) ? 'text-red-800 placeholder-red-600' : 'text-green-800 placeholder-green-600'; ?>">
+        <button type="button" 
+                onclick="toggleLoginPassword()" 
+                class="<?php echo isset($_SESSION['login_error']) ? 'text-red-600' : 'text-green-600'; ?> focus:outline-none">
             <i class="fas fa-eye" id="toggleLoginPassword"></i>
         </button>
     </div>
+    <?php if (isset($_SESSION['login_error'])): ?>
+    <div class="mt-2 text-red-600 text-sm flex items-center justify-between">
+        <span class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-1"></i>
+            Incorrect password
+        </span>
+        <a href="reset_password.php" class="text-blue-500 hover:text-blue-700 text-sm">
+            Forgot password?
+        </a>
+    </div>
+    <?php endif; ?>
 </div>
+
+
                 <button type="submit" class=" btn-add-transaction bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition duration-300 w-full flex items-center justify-center">
                     <i class="fas fa-sign-in-alt mr-2"></i>
                     Login
@@ -109,6 +134,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         </div>
     </footer>
     <script>
+// Automatically fill in the username/email if there was a login error
+document.addEventListener('DOMContentLoaded', function() {
+    <?php if (isset($_SESSION['last_username'])): ?>
+    document.querySelector('input[name="usernameOrEmail"]').value = <?php echo json_encode($_SESSION['last_username']); ?>;
+    <?php endif; ?>
+});
+
+// Clear error styling when user starts typing a new password
+document.getElementById('loginPassword').addEventListener('input', function() {
+    this.closest('div').classList.remove('border-red-500', 'border');
+    this.classList.remove('text-red-800', 'placeholder-red-600');
+    this.classList.add('text-green-800', 'placeholder-green-600');
+});
+
+// Function to toggle password visibility
 function toggleLoginPassword() {
     const passwordInput = document.getElementById('loginPassword');
     const toggleIcon = document.getElementById('toggleLoginPassword');
@@ -127,3 +167,9 @@ function toggleLoginPassword() {
 
 </body>
 </html>
+
+<?php
+// Clean up session variables after displaying them
+unset($_SESSION['login_error']);
+unset($_SESSION['last_username']);
+?>
