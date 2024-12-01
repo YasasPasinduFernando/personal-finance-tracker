@@ -2,9 +2,9 @@
 session_start();
 include 'database.php';
 
-$client_id = '463085803378-lilic35gmnmk0omh7nncsm9icji49dlp.apps.googleusercontent.com';
-$client_secret = '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';
-$redirect_uri = 'https://financetracker.great-site.net/google_callback.php';
+$client_id = '';
+$client_secret = '';
+$redirect_uri = 'https://financetracker.great-site.net';
 
 if (isset($_GET['code'])) {
     $code = $_GET['code'];

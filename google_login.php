@@ -1,8 +1,8 @@
 <?php
 session_start();
 
-$client_id = 'sdsdsdsdssdvdfdfdfdfdffdg.apps.googleusercontent.com';
-$redirect_uri = 'https://financetracker.great-site.net/google_callback.php';
+$client_id = '';
+$redirect_uri = 'https://financetracker.great-site.net';
 
 $google_login_url = "https://accounts.google.com/o/oauth2/v2/auth?";
 $google_login_url .= "client_id=" . urlencode($client_id);
