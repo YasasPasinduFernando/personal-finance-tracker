@@ -2,6 +2,39 @@
 // database.php
 include 'config.php';
 
+function getUserByGoogleId($google_id) {
+    // Get the database connection
+    $db = getDB();
+
+    // Prepare the SQL statement
+    $stmt = $db->prepare("SELECT * FROM users WHERE google_id = ?");
+    
+    if ($stmt) {
+        // Bind the parameter
+        $stmt->bind_param("s", $google_id);
+        
+        // Execute the statement
+        $stmt->execute();
+        
+        // Fetch the result
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        
+        // Close the statement
+        $stmt->close();
+        
+        // Close the database connection
+        $db->close();
+        
+        return $user;
+    } else {
+        // Handle error (optional)
+        die("Error preparing statement: " . $db->error);
+    }
+}
+
+
+
 function registerUser($name, $email, $password) {
     $db = getDB();
     $stmt = $db->prepare("INSERT INTO users (username, email, password) VALUES (?, ?, ?)");
