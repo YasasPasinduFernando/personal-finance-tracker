@@ -160,9 +160,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     <div class="space-y-2">
                         <label for="current_password" class="block text-sm font-medium text-gray-700">Current Password</label>
-                        <input type="password" id="current_password" name="current_password" 
+                        <input type="password" id="current_password" name="current_password" required
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
+                    <div class="mt-2 text-red-600 text-sm flex items-center justify-between">
+                    <a href="reset_password.php" class="text-blue-500 hover:text-blue-700 text-sm">
+                    Forgot password?
+                     </a>
+                     </div>
                     
                     <div class="space-y-2">
                         <label for="new_password" class="block text-sm font-medium text-gray-700">
@@ -320,6 +325,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 closeDeleteModal();
             }
         });
+
+
+        function togglePassword(fieldId) {
+            const passwordField = document.getElementById(fieldId);
+            const toggleIcon = document.getElementById(fieldId + '_toggle');
+            
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordField.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
     </script>
 </body>
 </html>
