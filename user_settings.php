@@ -160,7 +160,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     
                     <div class="space-y-2">
                         <label for="current_password" class="block text-sm font-medium text-gray-700">Current Password</label>
-                        <input type="password" id="current_password" name="current_password" required
+                        <input type="password" id="current_password" name="current_password" 
                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                     
