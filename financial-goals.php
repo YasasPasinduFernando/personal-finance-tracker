@@ -71,6 +71,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
     }
 
+    // Try again (move failed goal back to active)
+    if (isset($_POST['try_again'])) {
+        $goalId = $_POST['goal_id'];
+        $sql = "UPDATE financial_goals SET status = 'active' WHERE id = ? AND user_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ii", $goalId, $userId);
+        $stmt->execute();
+    }
+
     // Update daily increment
     if (isset($_POST['add_daily_increment'])) {
         $goalId = $_POST['goal_id'];
@@ -113,169 +122,126 @@ $greeting = getTimeBasedGreeting();
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <style>
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
         }
         
-        .modal-content {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
+        .hover-scale {
+            transition: transform 0.2s;
         }
         
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .custom-shadow {
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
         .progress-bar {
-            height: 10px;
-            background-color: #e2e8f0;
-            border-radius: 5px;
+            height: 8px;
             overflow: hidden;
         }
-        
+
         .progress-fill {
             height: 100%;
-            background-color: #4299e1;
-            transition: width 0.3s ease;
+            transition: width 0.5s ease-in-out;
         }
-        
-        .countdown {
-            color: #e53e3e;
-            font-weight: bold;
+
+        .modal {
+            transition: opacity 0.3s ease-in-out;
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
     <!-- Navigation -->
-    <nav class="bg-blue-600 text-white shadow-lg">
+    <nav class="gradient-bg text-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4">
-            <div class="flex justify-between items-center">
-                <div class="flex items-center">
-                    <i class="fas fa-chart-line text-2xl mr-2"></i>
-                    <span class="text-xl font-bold">Finance Tracker</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <span><?php echo $greeting; ?>, <?php echo htmlspecialchars($userName); ?>!</span>
-                    <a href="logout.php" class="hover:text-gray-200">
-                        <i class="fas fa-sign-out-alt"></i> Logout
+            <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-8">
+                    <div class="flex items-center">
+                        <i class="fas fa-chart-line text-2xl mr-2"></i>
+                        <span class="text-xl font-bold">Finance Tracker</span>
+                    </div>
+                    <a href="dashboard.php" class="flex items-center hover:bg-white hover:text-blue-600 px-4 py-2 rounded-lg transition duration-300">
+                        <i class="fas fa-home mr-2"></i>
+                        Back to Dashboard
                     </a>
+                </div>
+                <div class="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
+                    <span class="glass-effect px-4 py-2 rounded-lg w-full md:w-auto text-center">
+                        <?php echo $greeting; ?>, <?php echo htmlspecialchars($userName); ?>!
+                    </span>
+                    <button onclick="openLogoutModal()" class="hover:bg-red-500 px-4 py-2 rounded-lg transition duration-300 w-full md:w-auto">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
                 </div>
             </div>
         </div>
     </nav>
 
     <div class="container mx-auto px-4 py-8">
-        <button onclick="openAddGoalModal()" class="mb-8 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300">
+        <!-- Add New Goal Button -->
+        <button onclick="openAddGoalModal()" class="w-full md:w-auto mb-8 gradient-bg text-white px-8 py-4 rounded-lg hover:shadow-lg transition duration-300 hover-scale">
             <i class="fas fa-plus mr-2"></i>Add New Goal
         </button>
 
-        <!-- Add Goal Modal -->
-        <div id="addGoalModal" class="modal">
-            <div class="modal-content">
-                <h2 class="text-xl font-bold mb-4">Add New Goal</h2>
-                <form method="POST">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Title</label>
-                        <input type="text" name="title" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Target Amount</label>
-                        <input type="number" step="0.01" name="target_amount" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Current Amount</label>
-                        <input type="number" step="0.01" name="current_amount" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Deadline</label>
-                        <input type="date" name="deadline" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" onclick="closeAddGoalModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</button>
-                        <button type="submit" name="add_goal" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Add Goal</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Daily Increment Modal -->
-        <div id="dailyIncrementModal" class="modal">
-            <div class="modal-content">
-                <h2 class="text-xl font-bold mb-4">Add Daily Progress</h2>
-                <form method="POST">
-                    <input type="hidden" id="incrementGoalId" name="goal_id">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">Amount to Add</label>
-                        <input type="number" step="0.01" name="increment_amount" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" onclick="closeDailyIncrementModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</button>
-                        <button type="submit" name="add_daily_increment" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Add Progress</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Extend Deadline Modal -->
-        <div id="extendGoalModal" class="modal">
-            <div class="modal-content">
-                <h2 class="text-xl font-bold mb-4">Extend Deadline</h2>
-                <form method="POST">
-                    <input type="hidden" id="extensionGoalId" name="goal_id">
-                    <div class="mb-4">
-                        <label class="block text-sm font-medium text-gray-700">New Deadline</label>
-                        <input type="date" name="new_deadline" required class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    </div>
-                    <div class="flex justify-end space-x-2">
-                        <button type="button" onclick="closeExtendGoalModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</button>
-                        <button type="submit" name="extend_deadline" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Extend Deadline</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
         <!-- Active Goals Section -->
-        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Active Goals</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl custom-shadow p-4 md:p-8 mb-8">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-target text-blue-600 mr-3"></i>
+                Active Goals
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                 <?php while($goal = $activeGoals->fetch_assoc()): 
                     $progress = ($goal['current_amount'] / $goal['target_amount']) * 100;
                     $progress = min(100, max(0, $progress));
                 ?>
-                    <div class="goal-card bg-white rounded-lg shadow p-6" data-goal-id="<?php echo $goal['id']; ?>" data-deadline="<?php echo $goal['deadline']; ?>">
-                        <h3 class="text-xl font-semibold mb-2"><?php echo htmlspecialchars($goal['title']); ?></h3>
+                    <div class="goal-card bg-white rounded-lg custom-shadow p-6 hover-scale" data-goal-id="<?php echo $goal['id']; ?>" data-deadline="<?php echo $goal['deadline']; ?>">
+                        <h3 class="text-xl font-semibold mb-3 text-blue-600"><?php echo htmlspecialchars($goal['title']); ?></h3>
                         <div class="mb-4">
-                            <div class="flex justify-between text-sm text-gray-600 mb-1">
-                                <span>Progress</span>
-                                <span><?php echo number_format($progress, 1); ?>%</span>
+                            <div class="flex justify-between text-sm text-gray-600 mb-2">
+                                <span class="font-medium">Progress</span>
+                                <span class="font-bold text-blue-600"><?php echo number_format($progress, 1); ?>%</span>
                             </div>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: <?php echo $progress; ?>%"></div>
+                            <div class="progress-bar bg-gray-200 rounded-full">
+                                <div class="progress-fill rounded-full <?php echo $progress >= 100 ? 'bg-green-500' : 'bg-blue-500'; ?>" style="width: <?php echo $progress; ?>%"></div>
                             </div>
                         </div>
-                        <div class="text-sm text-gray-600 mb-4">
-                            <p>Current: $<?php echo number_format($goal['current_amount'], 2); ?></p>
-                            <p>Target: $<?php echo number_format($goal['target_amount'], 2); ?></p>
-                            <p>Deadline: <?php echo date('M d, Y', strtotime($goal['deadline'])); ?></p>
-                            <p>Time Remaining: <span id="countdown-<?php echo $goal['id']; ?>" class="countdown"></span></p>
+                        <div class="text-sm text-gray-600 mb-4 space-y-2">
+                            <p class="flex justify-between">
+                                <span>Current:</span>
+                                <span class="font-medium">LKR <?php echo number_format($goal['current_amount'], 2); ?></span>
+                            </p>
+                            <p class="flex justify-between">
+                                <span>Target:</span>
+                                <span class="font-medium">LKR <?php echo number_format($goal['target_amount'], 2); ?></span>
+                            </p>
+                            <p class="flex justify-between">
+                                <span>Deadline:</span>
+                                <span class="font-medium"><?php echo date('M d, Y', strtotime($goal['deadline'])); ?></span>
+                            </p>
+                            <p class="flex justify-between">
+                                <span>Remaining:</span>
+                                <span id="countdown-<?php echo $goal['id']; ?>" class="countdown font-medium"></span>
+                            </p>
                         </div>
-                        <div class="flex justify-between">
-                            <button onclick="openDailyIncrementModal(<?php echo $goal['id']; ?>)" class="text-blue-600 hover:text-blue-800">
-                                <i class="fas fa-plus-circle"></i> Add Progress
+                        <div class="flex justify-between border-t pt-4">
+                            <button onclick="openDailyIncrementModal(<?php echo $goal['id']; ?>)" class="text-blue-600 hover:text-blue-800 flex items-center">
+                                <i class="fas fa-plus-circle mr-1"></i> Add Progress
                             </button>
-                            <button onclick="openExtendGoalModal(<?php echo $goal['id']; ?>)" class="text-yellow-600 hover:text-yellow-800">
-                                <i class="fas fa-clock"></i> Extend
+                            <button onclick="openExtendGoalModal(<?php echo $goal['id']; ?>)" class="text-yellow-600 hover:text-yellow-800 flex items-center">
+                                <i class="fas fa-clock mr-1"></i> Extend
                             </button>
-                            <button onclick="markGoalFailed(<?php echo $goal['id']; ?>)" class="text-red-600 hover:text-red-800">
-                                <i class="fas fa-times-circle"></i> Failed
+                            <button onclick="markGoalFailed(<?php echo $goal['id']; ?>)" class="text-red-600 hover:text-red-800 flex items-center">
+                                <i class="fas fa-times-circle mr-1"></i> Failed
                             </button>
                         </div>
                     </div>
@@ -284,28 +250,49 @@ $greeting = getTimeBasedGreeting();
         </div>
 
         <!-- Failed Goals Section -->
-        <div class="bg-white rounded-xl shadow-lg p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-6">Failed Goals</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl custom-shadow p-4 md:p-8">
+            <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                <i class="fas fa-times-circle text-red-600 mr-3"></i>
+                Failed Goals
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                 <?php while($goal = $failedGoals->fetch_assoc()): 
                     $progress = ($goal['current_amount'] / $goal['target_amount']) * 100;
                     $progress = min(100, max(0, $progress));
                 ?>
-                    <div class="bg-red-50 rounded-lg shadow p-6">
-                        <h3 class="text-xl font-semibold mb-2"><?php echo htmlspecialchars($goal['title']); ?></h3>
+                    <div class="bg-red-50 rounded-lg custom-shadow p-6 hover-scale">
+                        <h3 class="text-xl font-semibold mb-3 text-red-600"><?php echo htmlspecialchars($goal['title']); ?></h3>
                         <div class="mb-4">
-                            <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <div class="flex justify-between text-sm text-gray-600 mb-2">
                                 <span>Final Progress</span>
-                                <span><?php echo number_format($progress, 1); ?>%</span>
+                                <span class="font-bold text-red-600"><?php echo number_format($progress, 1); ?>%</span>
                             </div>
-                            <div class="progress-bar bg-red-200">
-                                <div class="progress-fill bg-red-500" style="width: <?php echo $progress; ?>%"></div>
+                            <div class="progress-bar bg-red-200 rounded-full">
+                                <div class="progress-fill bg-red-500 rounded-full" style="width: <?php echo $progress; ?>%"></div>
                             </div>
                         </div>
-                        <div class="text-sm text-gray-600">
-                            <p>Reached: $<?php echo number_format($goal['current_amount'], 2); ?></p>
-                            <p>Target: $<?php echo number_format($goal['target_amount'], 2); ?></p>
-                            <p>Failed on: <?php echo date('M d, Y', strtotime($goal['deadline'])); ?></p>
+                        <div class="text-sm text-gray-600 space-y-2">
+                            <p class="flex justify-between">
+                                <span>Reached:</span>
+                                <span class="font-medium">LKR <?php echo number_format($goal['current_amount'], 2); ?></span>
+                            </p>
+                            <p class="flex justify-between">
+                                <span>Target:</span>
+                                <span class="font-medium">LKR <?php echo number_format($goal['target_amount'], 2); ?></span>
+                            </p>
+                            <p class="flex justify-between">
+                                <span>Failed on:</span>
+                                <span class="font-medium"><?php echo date('M d, Y', strtotime($goal['deadline'])); ?></span>
+                            </p>
+                        </div>
+                        <div class="border-t pt-4 mt-4">
+                            <form method="POST" action="">
+                                <input type="hidden" name="goal_id" value="<?php echo $goal['id']; ?>">
+                                <button type="submit" name="try_again" 
+                                    class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded transition duration-300">
+                                    <i class="fas fa-redo mr-2"></i>Try Again
+                                </button>
+                            </form>
                         </div>
                     </div>
                 <?php endwhile; ?>
@@ -313,9 +300,156 @@ $greeting = getTimeBasedGreeting();
         </div>
     </div>
 
+    <!-- Add Goal Modal -->
+    <div id="addGoalModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold mb-4">Add New Goal</h2>
+            <form method="POST" action="">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
+                        Goal Title
+                    </label>
+                    <input type="text" id="title" name="title" required
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="target_amount">
+                        Target Amount (LKR)
+                    </label>
+                    <input type="number" id="target_amount" name="target_amount" required min="0" step="0.01"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="current_amount">
+                        Current Amount (LKR)
+                    </label>
+                    <input type="number" id="current_amount" name="current_amount" required min="0" step="0.01"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="deadline">
+                        Deadline
+                    </label>
+                    <input type="date" id="deadline" name="deadline" required
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeAddGoalModal()" 
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                        Cancel
+                    </button>
+                    <button type="submit" name="add_goal" 
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Add Goal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Logout Modal -->
+    <div id="logoutModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-lg w-96 max-w-[90%] mx-auto p-6">
+            <h2 class="text-xl font-bold mb-4 text-blue-600">Confirm Logout</h2>
+            <p class="text-gray-700 mb-6">Are you sure you want to logout from your account?</p>
+            <div class="flex justify-end space-x-4">
+                <button 
+                    onclick="closeLogoutModal()" 
+                    class="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded">
+                    Cancel
+                </button>
+                <a 
+                    href="index.php" 
+                    class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded">
+                    Logout
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Daily Increment Modal -->
+    <div id="dailyIncrementModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold mb-4">Add Daily Progress</h2>
+            <form method="POST" action="">
+                <input type="hidden" name="goal_id" id="incrementGoalId">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="increment_amount">
+                        Amount (LKR)
+                    </label>
+                    <input type="number" id="increment_amount" name="increment_amount" required min="0" step="0.01"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeDailyIncrementModal()" 
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                        Cancel
+                    </button>
+                    <button type="submit" name="add_daily_increment" 
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Add Progress
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Extend Goal Modal -->
+    <div id="extendGoalModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold mb-4">Extend Goal Deadline</h2>
+            <form method="POST" action="">
+                <input type="hidden" name="goal_id" id="extensionGoalId">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="new_deadline">
+                        New Deadline
+                    </label>
+                    <input type="date" id="new_deadline" name="new_deadline" required
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeExtendGoalModal()" 
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                        Cancel
+                    </button>
+                    <button type="submit" name="extend_deadline" 
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                        Extend
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer class="bg-gray-800 text-white py-6 w-full mt-8">
+        <div class="container mx-auto px-4 text-center">
+            <p class="mb-2 text-sm md:text-base">
+                Created By Yasas Pasindu Fernando (23da2-0318)
+            </p>
+            <p class="text-xs md:text-sm text-gray-400">
+                @ SLTC Research University
+            </p>
+            <div class="mt-4 text-gray-400 text-xl md:text-2xl">
+                <a href="https://github.com/YasasPasinduFernando" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://www.linkedin.com/in/yasas-pasindu-fernando-893b292b2/" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="https://x.com/YPasiduFernando?s=09" target="_blank" class="mx-2 hover:text-white">
+                    <i class="fab fa-twitter"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+</body>
+
     <script>
         function openAddGoalModal() {
             document.getElementById('addGoalModal').style.display = 'flex';
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('deadline').min = tomorrow.toISOString().split('T')[0];
         }
 
         function closeAddGoalModal() {
@@ -333,6 +467,9 @@ $greeting = getTimeBasedGreeting();
 
         function openExtendGoalModal(goalId) {
             document.getElementById('extensionGoalId').value = goalId;
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('new_deadline').min = tomorrow.toISOString().split('T')[0];
             document.getElementById('extendGoalModal').style.display = 'flex';
         }
 
@@ -392,6 +529,20 @@ $greeting = getTimeBasedGreeting();
                 setInterval(updateCountdown, 1000);
             });
         });
+
+        // Logout modal functions
+        function openLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.remove('hidden');
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            modal.classList.add('hidden');
+        }
+
+
+
     </script>
 </body>
 </html>

@@ -119,7 +119,6 @@ $greeting = getTimeBasedGreeting();
                 </span>
                 <span class="text-gray-500 text-sm">(<?php echo $greeting; ?>)</span>
             </div>
-
             <!-- Actions Section -->
             <div class="flex items-center space-x-6">
                 <!-- Clock Display -->
@@ -148,14 +147,139 @@ $greeting = getTimeBasedGreeting();
 <div class="container mx-auto px-4 py-12 flex-grow">
     <div class="bg-white shadow-2xl rounded-xl p-8">
     <div class="space-y-8 mb-12">
-
-    <!-- Title Section with Gradient Border Bottom -->
-    <div class="pb-6 border-b border-gradient-to-r from-blue-200 to-purple-200">
-        <h1 class="text-4xl font-extrabold text-blue-800 flex items-center">
-            <i class="fas fa-chart-line mr-4 text-green-500 transform hover:scale-110 transition-transform"></i>
-            Financial Dashboard
+        
+<!-- Title Section with Gradient Border Bottom -->
+<div class="pb-4 sm:pb-6 border-b border-gradient-to-r from-blue-200 to-purple-200">
+    <div class="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-0">
+        <!-- Dashboard Title - Responsive text size -->
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-extrabold text-blue-800 flex items-center">
+            <i class="fas fa-chart-line mr-2 sm:mr-4 text-green-500 transform hover:scale-110 transition-transform text-xl sm:text-2xl md:text-3xl"></i>
+            <span class="whitespace-nowrap">Financial Dashboard</span>
         </h1>
+
+        <!-- Goals Link with Glow Effect -->
+        <a href="financial-goals.php" 
+           class="goals-btn w-full sm:w-auto flex items-center justify-center px-3 sm:px-4 py-2 rounded-lg 
+                  bg-gradient-to-r from-blue-500 to-purple-500 
+                  hover:from-blue-600 hover:to-purple-600 
+                  text-white shadow-lg transform hover:scale-105 
+                  transition-all duration-300 group text-sm sm:text-base
+                  relative overflow-hidden glow-effect">
+            <i class="fas fa-bullseye mr-2 text-yellow-300 
+                      group-hover:rotate-12 transition-transform duration-300 
+                      text-sm sm:text-base"></i>
+            <span class="mr-2 font-semibold">FinancialGoals</span>
+            <i class="fas fa-chevron-circle-right text-yellow-300 
+                      group-hover:translate-x-1 transition-transform duration-300
+                      text-sm sm:text-base"></i>
+        </a>
     </div>
+</div>
+
+<style>
+/* Glow Effect Animation */
+.glow-effect {
+    position: relative;
+}
+
+.glow-effect::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+        #ff0000, #ff7300, #fffb00, #48ff00, 
+        #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+    z-index: -1;
+    background-size: 400%;
+    border-radius: inherit;
+    filter: blur(5px);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Desktop hover effect */
+@media (hover: hover) and (pointer: fine) {
+    .glow-effect::before {
+        animation: none; /* Reset animation for desktop */
+        opacity: 0;
+    }
+    
+    .glow-effect:hover::before {
+        opacity: 1;
+        animation: steam 20s linear infinite;
+    }
+}
+
+/* Mobile automatic animation */
+@media (hover: none) or (pointer: coarse) {
+    .glow-effect::before {
+        opacity: 0.7; /* Slightly reduced opacity for mobile */
+        animation: steam 20s linear infinite;
+    }
+}
+
+@keyframes steam {
+    0% {
+        background-position: 0 0;
+    }
+    50% {
+        background-position: 400% 0;
+    }
+    100% {
+        background-position: 0 0;
+    }
+}
+
+/* Base button styles */
+.goals-btn {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+/* Active state for mobile */
+@media (hover: none) {
+    .goals-btn:active {
+        transform: scale(0.98);
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+    }
+}
+
+/* Hover state for desktop */
+@media (hover: hover) {
+    .goals-btn:hover {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+}
+
+/* Add touch feedback */
+@media (max-width: 640px) {
+    .goals-btn {
+        -webkit-tap-highlight-color: transparent;
+    }
+    
+    .goals-btn:active {
+        background-position: right center;
+    }
+}
+</style>
+
+<script>
+// Add touch detection
+document.addEventListener('DOMContentLoaded', function() {
+    const goalBtn = document.querySelector('.goals-btn');
+    
+    // Add touch feedback
+    goalBtn.addEventListener('touchstart', function(e) {
+        this.classList.add('touch-active');
+    }, false);
+    
+    goalBtn.addEventListener('touchend', function(e) {
+        this.classList.remove('touch-active');
+    }, false);
+});
+</script>
     
     <!-- Buttons Section with Shadow and Better Spacing -->
     <div class="flex flex-wrap gap-4 justify-end">
