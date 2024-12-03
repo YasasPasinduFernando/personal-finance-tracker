@@ -224,6 +224,16 @@ $greeting = getTimeBasedGreeting();
         .modal {
             transition: opacity 0.3s ease-in-out;
         }
+
+/* On mobile screens (max-width: 768px), remove sticky behavior */
+@media (max-width: 768px) {
+    nav {
+        position: relative !important;  
+        top: auto !important;           
+        z-index: auto !important;       
+    }
+}
+
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-purple-50 min-h-screen">
@@ -272,10 +282,15 @@ $greeting = getTimeBasedGreeting();
                     <div class="goal-card bg-white rounded-lg custom-shadow p-6 hover-scale" data-goal-id="<?php echo $goal['id']; ?>" data-deadline="<?php echo $goal['deadline']; ?>">
                         
     
-    <!-- Add close icon on right -->
-    <div class="absolute right-4 top-4 text-red-500 cursor-pointer hover:text-red-600 transition duration-300" 
-     onclick="deleteGoal(<?php echo $goal['id']; ?>)"> Delete
-     <i class="fas fa-trash-alt text-xl"></i>
+<!-- Delete button with responsive positioning -->
+<div class="relative sm:absolute right-4 top-4 z-10 w-full sm:w-auto flex justify-end mb-2 sm:mb-0">
+    <button 
+        onclick="deleteGoal(<?php echo $goal['id']; ?>)" 
+        class="text-red-500 hover:text-red-700 transition duration-300 flex items-center space-x-1"
+    >
+        <i class="fas fa-trash-alt text-xl"></i>
+        <span class="text-sm">Delete</span>
+    </button>
 </div>
 
                     

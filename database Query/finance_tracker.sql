@@ -37,17 +37,19 @@ INSERT INTO `categories` (`id`, `name`, `type`, `user_id`) VALUES
 -- Table structure for table `financial_goals`
 --
 
-CREATE TABLE `financial_goals` (
-  `id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `target_amount` decimal(10,2) NOT NULL,
-  `current_amount` decimal(10,2) NOT NULL,
-  `deadline` date NOT NULL,
-  `is_archived` tinyint(1) DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `user_id` int(11) NOT NULL,
-  `status` varchar(20) NOT NULL DEFAULT 'active'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+CREATE TABLE financial_goals (
+  id int(11) AUTO_INCREMENT,
+  title varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci,
+  target_amount decimal(10,2),
+  current_amount decimal(10,2),
+  deadline date,
+  is_archived tinyint(1) DEFAULT 0,
+  created_at timestamp DEFAULT CURRENT_TIMESTAMP,
+  user_id int(11),
+  status varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'active',
+  PRIMARY KEY (id),
+  FOREIGN KEY (user_id) REFERENCES users(id)
+);
 
 --
 -- Dumping data for table `financial_goals`
