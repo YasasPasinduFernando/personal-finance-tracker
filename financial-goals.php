@@ -15,9 +15,18 @@ function getUserData($userId) {
 
 // Function to fetch goals
 function fetchGoals($conn, $userId, $status) {
-    $sql = "SELECT * FROM financial_goals WHERE user_id = ? AND status = ? ORDER BY deadline ASC";
+    $sql = "SELECT * FROM financial_goals WHERE user_id = ? AND status = ? AND is_archived = 0 ORDER BY deadline ASC";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("is", $userId, $status);
+    $stmt->execute();
+    return $stmt->get_result();
+}
+
+// Archived fetchGoals function
+function fetchArchivedGoals($conn, $userId) {
+    $sql = "SELECT * FROM financial_goals WHERE user_id = ? AND is_archived = 1 ORDER BY deadline ASC";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $userId);
     $stmt->execute();
     return $stmt->get_result();
 }
@@ -104,9 +113,66 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute();
     }
 
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        if (isset($_POST['delete_goal']) && isset($_POST['goal_id'])) {
+            $goalId = intval($_POST['goal_id']); // Sanitize input
+            $sql = "DELETE FROM financial_goals WHERE id = ?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param('i', $goalId);
+            
+            if ($stmt->execute()) {
+                echo "Goal deleted successfully";
+            } else {
+                echo "Error deleting goal: " . $stmt->error;
+            }
+            
+            $stmt->close();
+            header("Location: " . $_SERVER['PHP_SELF']);
+            exit();
+        }
+    }
+
+    // Add this inside your if ($_SERVER['REQUEST_METHOD'] === 'POST') block
+if (isset($_POST['archive_goal'])) {
+    $goalId = $_POST['goal_id'];
+    $sql = "UPDATE financial_goals SET is_archived = 1 WHERE id = ? AND user_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $goalId, $userId);
+    $stmt->execute();
     header("Location: " . $_SERVER['PHP_SELF']);
     exit();
 }
+
+if (isset($_POST['unarchive_goal'])) {
+    $goalId = $_POST['goal_id'];
+    $sql = "UPDATE financial_goals SET is_archived = 0 WHERE id = ? AND user_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $goalId, $userId);
+    $stmt->execute();
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+    
+
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
+
+// delete Goal
+
+if (isset($_POST['delete_goal'])) {
+    $goalId = $_POST['goal_id'];
+    $sql = "DELETE FROM financial_goals WHERE id = ? AND user_id = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $goalId, $userId);
+    $stmt->execute();
+    
+    header("Location: " . $_SERVER['PHP_SELF']);
+    exit();
+}
+
 
 $activeGoals = fetchGoals($conn, $userId, 'active');
 $failedGoals = fetchGoals($conn, $userId, 'failed');
@@ -202,20 +268,21 @@ $greeting = getTimeBasedGreeting();
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
                 <?php while($goal = $activeGoals->fetch_assoc()): 
                     $progress = ($goal['current_amount'] / $goal['target_amount']) * 100;
-                    $progress = min(100, max(0, $progress));
                 ?>
                     <div class="goal-card bg-white rounded-lg custom-shadow p-6 hover-scale" data-goal-id="<?php echo $goal['id']; ?>" data-deadline="<?php echo $goal['deadline']; ?>">
                         
 
                     <!-- Add tick icon on left -->
-    <div class="absolute left-4 top-4 text-green-500">
+    <div onclick="archiveGoal(<?php echo $goal['id']; ?>)" class="absolute left-4 top-4 text-green-500">
         <i class="fas fa-check-circle text-xl"></i>
     </div>
     
     <!-- Add close icon on right -->
-    <div class="absolute right-4 top-4 text-red-500 cursor-pointer hover:text-red-600 transition duration-300" onclick="markGoalFailed(<?php echo $goal['id']; ?>)">
-        <i class="fas fa-times-circle text-xl"></i>
-    </div>
+    <div class="absolute right-4 top-4 text-red-500 cursor-pointer hover:text-red-600 transition duration-300" 
+     onclick="deleteGoal(<?php echo $goal['id']; ?>)">
+    <i class="fas fa-times-circle text-xl"></i>
+</div>
+
                     
                     
                     
@@ -247,17 +314,38 @@ $greeting = getTimeBasedGreeting();
                                 <span id="countdown-<?php echo $goal['id']; ?>" class="countdown font-medium"></span>
                             </p>
                         </div>
-                        <div class="flex justify-between border-t pt-4">
-                            <button onclick="openDailyIncrementModal(<?php echo $goal['id']; ?>)" class="text-blue-600 hover:text-blue-800 flex items-center">
-                                <i class="fas fa-plus-circle mr-1"></i> Add Progress
-                            </button>
-                            <button onclick="openExtendGoalModal(<?php echo $goal['id']; ?>)" class="text-yellow-600 hover:text-yellow-800 flex items-center">
-                                <i class="fas fa-clock mr-1"></i> Extend
-                            </button>
-                            <button onclick="markGoalFailed(<?php echo $goal['id']; ?>)" class="text-red-600 hover:text-red-800 flex items-center">
-                                <i class="fas fa-times-circle mr-1"></i> Failed
-                            </button>
-                        </div>
+                        <div class="border-t pt-4">
+    <!-- Grid container for buttons -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <!-- Add Progress Button -->
+        <button onclick="openDailyIncrementModal(<?php echo $goal['id']; ?>)" 
+                class="flex items-center justify-center p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-all duration-300">
+            <i class="fas fa-plus-circle mr-2"></i>
+            <span class="text-sm">Add Progress</span>
+        </button>
+
+        <!-- Extend Button -->
+        <button onclick="openExtendGoalModal(<?php echo $goal['id']; ?>)" 
+                class="flex items-center justify-center p-2 text-yellow-600 hover:text-yellow-800 hover:bg-yellow-50 rounded-lg transition-all duration-300">
+            <i class="fas fa-clock mr-2"></i>
+            <span class="text-sm">Extend</span>
+        </button>
+
+        <!-- Archive Button -->
+        <button onclick="archiveGoal(<?php echo $goal['id']; ?>)" 
+                class="flex items-center justify-center p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-all duration-300">
+            <i class="fas fa-archive mr-2"></i>
+            <span class="text-sm">Archived</span>
+        </button>
+
+        <!-- Failed Button -->
+        <button onclick="markGoalFailed(<?php echo $goal['id']; ?>)" 
+                class="flex items-center justify-center p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-all duration-300">
+            <i class="fas fa-times-circle mr-2"></i>
+            <span class="text-sm">Failed</span>
+        </button>
+    </div>
+</div>
                     </div>
                 <?php endwhile; ?>
             </div>
@@ -312,7 +400,63 @@ $greeting = getTimeBasedGreeting();
                 <?php endwhile; ?>
             </div>
         </div>
+        
+        <!-- Archived Goals Section -->
+<div class="bg-white rounded-xl custom-shadow p-4 md:p-8 mt-8">
+    <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-6 flex items-center">
+        <i class="fas fa-archive text-gray-600 mr-3"></i>
+        Archived Goals
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+        <?php 
+        $archivedGoals = fetchArchivedGoals($conn, $userId);
+        while($goal = $archivedGoals->fetch_assoc()): 
+            $progress = ($goal['current_amount'] / $goal['target_amount']) * 100;
+            $progress = min(100, max(0, $progress));
+        ?>
+            <div class="bg-gray-50 rounded-lg custom-shadow p-6 hover-scale">
+                <h3 class="text-xl font-semibold mb-3 text-gray-600"><?php echo htmlspecialchars($goal['title']); ?></h3>
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm text-gray-600 mb-2">
+                        <span>Final Progress</span>
+                        <span class="font-bold text-gray-600"><?php echo number_format($progress, 1); ?>%</span>
+                    </div>
+                    <div class="progress-bar bg-gray-200 rounded-full">
+                        <div class="progress-fill bg-gray-500 rounded-full" style="width: <?php echo $progress; ?>%"></div>
+                    </div>
+                </div>
+                <div class="text-sm text-gray-600 space-y-2">
+                    <p class="flex justify-between">
+                        <span>Reached:</span>
+                        <span class="font-medium">LKR <?php echo number_format($goal['current_amount'], 2); ?></span>
+                    </p>
+                    <p class="flex justify-between">
+                        <span>Target:</span>
+                        <span class="font-medium">LKR <?php echo number_format($goal['target_amount'], 2); ?></span>
+                    </p>
+                    <p class="flex justify-between">
+                        <span>Archived on:</span>
+                        <span class="font-medium"><?php echo date('M d, Y', strtotime($goal['deadline'])); ?></span>
+                    </p>
+                </div>
+                <div class="border-t pt-4 mt-4">
+                    <form method="POST" action="">
+                        <input type="hidden" name="goal_id" value="<?php echo $goal['id']; ?>">
+                        <button type="submit" name="unarchive_goal" 
+                            class="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded transition duration-300">
+                            <i class="fas fa-box-open mr-2"></i>Unarchive
+                        </button>
+                    </form>
+                </div>
+            </div>
+        <?php endwhile; ?>
     </div>
+</div>
+
+
+    </div>
+
+    
 
     <!-- Add Goal Modal -->
     <div id="addGoalModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -435,6 +579,69 @@ $greeting = getTimeBasedGreeting();
         </div>
     </div>
 
+   <!-- Delete Goal Modal -->
+<div id="deleteGoalModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <h2 class="text-2xl font-bold mb-4 text-red-600">Delete Goal</h2>
+        <p class="text-gray-700 mb-6">Are you sure you want to delete this goal? This action cannot be undone.</p>
+        <form method="POST" action="">
+            <input type="hidden" name="goal_id" id="deleteGoalId">
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="closeDeleteGoalModal()" 
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Cancel
+                </button>
+                <button type="submit" name="delete_goal" 
+                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    Delete Goal
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Archive Goal Modal -->
+<div id="archiveGoalModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <h2 class="text-2xl font-bold mb-4 text-gray-600">Archive Goal</h2>
+        <p class="text-gray-700 mb-6">Are you sure you want to archive this goal? You can always unarchive it later.</p>
+        <form method="POST" action="">
+            <input type="hidden" name="goal_id" id="archiveGoalId">
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="closeArchiveGoalModal()" 
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Cancel
+                </button>
+                <button type="submit" name="archive_goal" 
+                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Archive Goal
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Mark Failed Modal -->
+<div id="markFailedModal" class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <h2 class="text-2xl font-bold mb-4 text-red-600">Mark Goal as Failed</h2>
+        <p class="text-gray-700 mb-6">Are you sure you want to mark this goal as failed? You can try again later if you want.</p>
+        <form method="POST" action="">
+            <input type="hidden" name="goal_id" id="failGoalId">
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="closeMarkFailedModal()" 
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                    Cancel
+                </button>
+                <button type="submit" name="mark_goal_failed" 
+                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                    Mark as Failed
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
     <footer class="bg-gray-800 text-white py-6 w-full mt-8">
         <div class="container mx-auto px-4 text-center">
             <p class="mb-2 text-sm md:text-base">
@@ -491,18 +698,6 @@ $greeting = getTimeBasedGreeting();
             document.getElementById('extendGoalModal').style.display = 'none';
         }
 
-        function markGoalFailed(goalId) {
-            if (confirm('Are you sure you want to mark this goal as failed?')) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.innerHTML = `
-                    <input type="hidden" name="goal_id" value="${goalId}">
-                    <input type="hidden" name="mark_goal_failed" value="1">
-                `;
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
 
         // Close modals when clicking outside
         window.onclick = function(event) {
@@ -554,6 +749,53 @@ $greeting = getTimeBasedGreeting();
             const modal = document.getElementById('logoutModal');
             modal.classList.add('hidden');
         }
+        
+function deleteGoal(goalId) {
+    document.getElementById('deleteGoalId').value = goalId;
+    document.getElementById('deleteGoalModal').style.display = 'flex';
+}
+
+function closeDeleteGoalModal() {
+    document.getElementById('deleteGoalModal').style.display = 'none';
+}
+
+function archiveGoal(goalId) {
+    document.getElementById('archiveGoalId').value = goalId;
+    document.getElementById('archiveGoalModal').style.display = 'flex';
+}
+
+function closeArchiveGoalModal() {
+    document.getElementById('archiveGoalModal').style.display = 'none';
+}
+
+function markGoalFailed(goalId) {
+    document.getElementById('failGoalId').value = goalId;
+    document.getElementById('markFailedModal').style.display = 'flex';
+}
+
+function closeMarkFailedModal() {
+    document.getElementById('markFailedModal').style.display = 'none';
+}
+
+// Update the window.onclick event handler to include the new modals
+window.onclick = function(event) {
+    const modals = [
+        'addGoalModal', 
+        'logoutModal', 
+        'dailyIncrementModal', 
+        'extendGoalModal',
+        'deleteGoalModal',
+        'archiveGoalModal',
+        'markFailedModal'
+    ];
+    
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    });
+}
 
 
 
