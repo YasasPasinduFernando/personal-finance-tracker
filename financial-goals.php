@@ -205,6 +205,20 @@ $greeting = getTimeBasedGreeting();
                     $progress = min(100, max(0, $progress));
                 ?>
                     <div class="goal-card bg-white rounded-lg custom-shadow p-6 hover-scale" data-goal-id="<?php echo $goal['id']; ?>" data-deadline="<?php echo $goal['deadline']; ?>">
+                        
+
+                    <!-- Add tick icon on left -->
+    <div class="absolute left-4 top-4 text-green-500">
+        <i class="fas fa-check-circle text-xl"></i>
+    </div>
+    
+    <!-- Add close icon on right -->
+    <div class="absolute right-4 top-4 text-red-500 cursor-pointer hover:text-red-600 transition duration-300" onclick="markGoalFailed(<?php echo $goal['id']; ?>)">
+        <i class="fas fa-times-circle text-xl"></i>
+    </div>
+                    
+                    
+                    
                         <h3 class="text-xl font-semibold mb-3 text-blue-600"><?php echo htmlspecialchars($goal['title']); ?></h3>
                         <div class="mb-4">
                             <div class="flex justify-between text-sm text-gray-600 mb-2">
