@@ -107,41 +107,65 @@ $greeting = getTimeBasedGreeting();
     </script>
 <body class="bg-gradient-to-br from-blue-100 to-purple-100 min-h-screen flex flex-col">
 
-<!-- this is user gerrting and current time section -->
-<div class="bg-white/80 backdrop-blur-sm shadow-sm">
-    <div class="container mx-auto px-4 py-3">
-        <div class="flex justify-between items-center">
+<!-- user gerrting and current time section -->
+<div class="bg-gradient-to-r from-blue-50/80 to-white/80 backdrop-blur-sm shadow-md rounded-lg border border-blue-100/50 transition-all duration-300 hover:shadow-lg">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex flex-col sm:flex-row justify-between items-center space-y-2 sm:space-y-0">
             <!-- User Section -->
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-user-circle text-blue-600 text-2xl"></i>
-                <span class="font-medium text-gray-700 text-lg">
-                    <?php echo htmlspecialchars($userName); ?>
-                </span>
-                <span class="text-gray-500 text-sm">(<?php echo $greeting; ?>)</span>
+            <div class="flex items-center space-x-3 w-full sm:w-auto">
+                <div class="bg-blue-100 rounded-full p-2 shadow-sm">
+                    <i class="fas fa-user-circle text-blue-600 text-2xl"></i>
+                </div>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center overflow-hidden">
+                    <span class="font-semibold text-gray-800 text-lg truncate max-w-[200px] sm:max-w-full animate-fade-in">
+                        <?php echo htmlspecialchars($userName); ?>
+                    </span>
+                    <span class="text-gray-500 text-sm sm:ml-2 whitespace-nowrap opacity-80">
+                        (<?php echo $greeting; ?>)
+                    </span>
+                </div>
             </div>
+            
             <!-- Actions Section -->
-            <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-4 sm:space-x-6 w-full sm:w-auto justify-end">
                 <!-- Clock Display -->
-                <div class="group relative flex items-center space-x-1 text-gray-700">
-                    <span class="text-gray-600 group-hover:text-blue-600">
+                <div class="group relative flex items-center space-x-2 text-gray-700 bg-gray-100 px-3 py-1 rounded-full transition-all duration-300 hover:bg-blue-100">
+                    <span class="text-blue-600 opacity-70 group-hover:opacity-100 transition-opacity">
                         <i class="fas fa-clock"></i>
                     </span>
-                    <span id="clockHours"></span>
-                    <span>:</span>
-                    <span id="clockMinutes"></span>
-                    <span>:</span>
-                    <span id="clockSeconds"></span>
-                    <span id="clockSuffix"></span>
+                    <div class="flex items-center space-x-1 font-mono text-gray-800">
+                        <span id="clockHours" class="clock-digit"></span>
+                        <span class="text-blue-500">:</span>
+                        <span id="clockMinutes" class="clock-digit"></span>
+                        <span class="text-blue-500">:</span>
+                        <span id="clockSeconds" class="clock-digit"></span>
+                        <span id="clockSuffix" class="text-sm text-gray-600"></span>
+                    </div>
                 </div>
-
+                
                 <!-- Settings Icon -->
-                <a href="user_settings.php" class="group relative text-gray-600 hover:text-blue-600 transition-colors">
-                    <i class="fas fa-cog text-xl group-hover:rotate-90 transition-transform duration-500"></i>
+                <a href="user_settings.php" class="group relative text-gray-600 hover:text-blue-600 transition-all duration-500">
+                    <div class="bg-gray-100 rounded-full p-2 hover:bg-blue-100 transition-all duration-300 transform hover:-rotate-12 hover:scale-110">
+                        <i class="fas fa-cog text-xl opacity-70 group-hover:opacity-100 transition-opacity"></i>
+                    </div>
                 </a>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .clock-digit {
+        @apply min-w-[20px] text-center;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+</style>
 
 
 <div class="container mx-auto px-4 py-12 flex-grow">

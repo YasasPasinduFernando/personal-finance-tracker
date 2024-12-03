@@ -271,16 +271,11 @@ $greeting = getTimeBasedGreeting();
                 ?>
                     <div class="goal-card bg-white rounded-lg custom-shadow p-6 hover-scale" data-goal-id="<?php echo $goal['id']; ?>" data-deadline="<?php echo $goal['deadline']; ?>">
                         
-
-                    <!-- Add tick icon on left -->
-    <div onclick="archiveGoal(<?php echo $goal['id']; ?>)" class="absolute left-4 top-4 text-green-500">
-        <i class="fas fa-check-circle text-xl"></i>
-    </div>
     
     <!-- Add close icon on right -->
     <div class="absolute right-4 top-4 text-red-500 cursor-pointer hover:text-red-600 transition duration-300" 
-     onclick="deleteGoal(<?php echo $goal['id']; ?>)">
-    <i class="fas fa-times-circle text-xl"></i>
+     onclick="deleteGoal(<?php echo $goal['id']; ?>)"> Delete
+     <i class="fas fa-trash-alt text-xl"></i>
 </div>
 
                     
