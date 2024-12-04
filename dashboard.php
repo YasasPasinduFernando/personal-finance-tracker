@@ -128,6 +128,13 @@ $greeting = getTimeBasedGreeting();
             
             <!-- Actions Section -->
             <div class="flex items-center space-x-4 sm:space-x-6 w-full sm:w-auto justify-end">
+                <!-- user guide section -->
+            <div class="group relative">
+                <a href="unguide.pdf" download class="text-blue-600 hover:text-blue-800 flex items-center">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    <span>Download User Guide</span>
+                </a>
+            </div>
                 <!-- Clock Display -->
                 <div class="group relative flex items-center space-x-2 text-gray-700 bg-gray-100 px-3 py-1 rounded-full transition-all duration-300 hover:bg-blue-100">
                     <span class="text-blue-600 opacity-70 group-hover:opacity-100 transition-opacity">
@@ -587,6 +594,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <div id="emptyDataModal" class="fixed inset-0 flex items-center justify-center modal-backdrop z-50">
         <div class="bg-white rounded-xl modal-content p-8 w-full max-w-md">
+        <button 
+            class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors duration-200"
+            aria-label="Close"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
             <?php 
                 $hour = date('H');
                 $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
@@ -599,6 +614,19 @@ document.addEventListener('DOMContentLoaded', function() {
             <h3 class="text-xl font-semibold text-gray-700 mb-3">Welcome to Your Financial Tracker</h3>
             <p class="text-gray-600 mb-8 leading-relaxed">
                 It looks like you're just getting started! Add your first transaction to begin tracking your finances and take control of your money.
+                <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-book-open text-blue-600 mr-3"></i>
+                        <span class="text-blue-800">New to Finance Tracker?</span>
+                    </div>
+                    <a href="unguide.pdf" download class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        Download Guide
+                    </a>
+                </div>
+            </div>
+            
             </p>
             
             <div class="text-center">
@@ -777,13 +805,27 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Prevent 0 data the modal from being closed manually
-// Disable close functionality (force user to go to the page)
+// --0-- data modal functions give the user to chnage close them
 const noTransactionModal = document.getElementById('emptyDataModal');
+const closeButton = noTransactionModal.querySelector('button[aria-label="Close"]');
+
 if (noTransactionModal) {
+    // Existing outside click handler
     noTransactionModal.addEventListener('click', function(e) {
-        if (e.target !== this) return;
-        e.preventDefault();
+        if (e.target === this) {
+            this.style.opacity = '0';
+            setTimeout(() => {
+                this.style.display = 'none';
+            }, 300);
+        }
+    });
+
+    // Add close button handler
+    closeButton.addEventListener('click', function() {
+        noTransactionModal.style.opacity = '0';
+        setTimeout(() => {
+            noTransactionModal.style.display = 'none';
+        }, 300);
     });
 }
 
