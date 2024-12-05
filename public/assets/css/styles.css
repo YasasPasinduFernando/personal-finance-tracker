@@ -1,0 +1,147 @@
+/* this added to remove :default space comming to tet areas */
+textarea {
+    padding: 0 !important;
+    margin: 0 !important;
+    text-indent: 0 !important;
+}
+
+/* to improve user experince add css animations to that */
+
+/* Base styles for the button */
+.btn-add-transaction {
+    background: linear-gradient(to right, #3b82f6, #2563eb); /* from-blue-500 to-blue-600 */
+    color: white;
+    padding: 12px 24px; /* px-6 py-3 */
+    border-radius: 8px; /* rounded-lg */
+    transition: all 0.3s ease; /* duration-300 */
+    display: flex;
+    align-items: center; /* flex items-center */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
+    text-decoration: none;
+}
+
+/* Hover effects */
+.btn-add-transaction:hover {
+    background: linear-gradient(to right, #2563eb, #1d4ed8); /* hover:from-blue-600 hover:to-blue-700 */
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* hover:shadow-lg */
+    transform: translateY(-2px); /* hover:-translate-y-0.5 */
+}
+
+/* Pulse animation for attention */
+.btn-add-transaction {
+    animation: pulse 1.5s infinite;
+}
+
+/* Pop effect on hover */
+.btn-add-transaction:hover {
+    animation: pop 0.3s ease-in-out forwards;
+}
+
+/* Keyframes for the pulse animation */
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Keyframes for the pop effect */
+@keyframes pop {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.15);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* financel goals btn styles */
+
+/* Goals Button Base Styles */
+.goals-btn {
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Glow Effect Base */
+.glow-effect {
+    position: relative;
+}
+
+.glow-effect::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+        #ff0000, #ff7300, #fffb00, #48ff00, 
+        #00ffd5, #002bff, #7a00ff, #ff00c8, #ff0000);
+    z-index: -1;
+    background-size: 400%;
+    border-radius: inherit;
+    filter: blur(5px);
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Animation Keyframes */
+@keyframes steam {
+    0% {
+        background-position: 0 0;
+    }
+    50% {
+        background-position: 400% 0;
+    }
+    100% {
+        background-position: 0 0;
+    }
+}
+
+/* Desktop Styles */
+@media (hover: hover) and (pointer: fine) {
+    .glow-effect::before {
+        animation: none;
+        opacity: 0;
+    }
+    
+    .glow-effect:hover::before {
+        opacity: 1;
+        animation: steam 20s linear infinite;
+    }
+    
+    .goals-btn:hover {
+        box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+}
+
+/* Mobile Styles */
+@media (hover: none) or (pointer: coarse) {
+    .glow-effect::before {
+        opacity: 0.7;
+        animation: steam 20s linear infinite;
+    }
+    
+    .goals-btn:active {
+        transform: scale(0.98);
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+    }
+}
+
+/* Small Screen Adjustments */
+@media (max-width: 640px) {
+    .goals-btn:active {
+        background-position: right center;
+    }
+}
+
+
+
+
+

@@ -5,10 +5,10 @@ error_reporting(E_ALL);
 
 // dashboard.php
 session_start();
-include 'database.php';
+include '../config/database.php';
 date_default_timezone_set('Asia/Colombo'); // Set timezone to Sri Lanka
 
-require_once('tcpdf/tcpdf.php');
+require_once('../../libs/tcpdf/tcpdf.php');
 
 
 if (!isset($_SESSION['user_id'])) {
@@ -70,7 +70,7 @@ $greeting = getTimeBasedGreeting();
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
+    <link href="../../public/assets/css/styles.css" rel="stylesheet">
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -172,12 +172,6 @@ $greeting = getTimeBasedGreeting();
     .animate-fade-in {
         animation: fadeIn 0.5s ease-out;
     }
-
-    #pdfModal {
-        animation: fadeIn 0.5s ease-out;
-        transition: opacity 0.5s ease-in-out;
-    }
-    
 </style>
 
 
@@ -810,55 +804,54 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-// modal controlls
 
-const pdfModal = document.getElementById('pdfModal');
-const emptyModal = document.getElementById('emptyDataModal'); 
-const openModal = document.getElementById('openModal');
-const closeButtons = document.querySelectorAll('[aria-label="Close"]');
-const cancelButtons = document.querySelectorAll('button');
+// --0-- data modal functions give the user to chnage close them
+const noTransactionModal = document.getElementById('emptyDataModal');
+const closeButton = noTransactionModal.querySelector('button[aria-label="Close"]');
 
-function closeModal(modal) {
-   modal.classList.add('opacity-0');
-   setTimeout(() => {
-       modal.classList.add('hidden');
-       modal.classList.remove('opacity-100');
-   }, 300);
+if (noTransactionModal) {
+    // Existing outside click handler
+    noTransactionModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.style.opacity = '0';
+            setTimeout(() => {
+                this.style.display = 'none';
+            }, 300);
+        }
+    });
+
+    // Add close button handler
+    closeButton.addEventListener('click', function() {
+        noTransactionModal.style.opacity = '0';
+        setTimeout(() => {
+            noTransactionModal.style.display = 'none';
+        }, 300);
+    });
 }
 
-function openPdfModal(e) {
-   e.preventDefault();
-   pdfModal.classList.remove('hidden');
-   setTimeout(() => {
-       pdfModal.classList.remove('opacity-0');
-       pdfModal.classList.add('opacity-100');
-   }, 10);
-}
+// Report Modal
 
-openModal.addEventListener('click', openPdfModal);
+// Open Modal
+document.getElementById('openModal').addEventListener('click', function (e) {
+        e.preventDefault();
+        document.getElementById('pdfModal').classList.remove('hidden');
+    });
 
-closeButtons.forEach(btn => {
-   btn.addEventListener('click', () => closeModal(btn.closest('.fixed')));
-});
+    // Close Modal
+    document.getElementById('closeModal').addEventListener('click', function () {
+        document.getElementById('pdfModal').classList.add('hidden');
+    });
 
-cancelButtons.forEach(btn => {
-   if(btn.textContent.trim() === 'Cancel') {
-       btn.addEventListener('click', () => closeModal(btn.closest('.fixed')));
-   }
-});
+    // Close modal when clicking outside of it
+    window.addEventListener('click', function (e) {
+        const modal = document.getElementById('pdfModal');
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
 
-window.addEventListener('click', (e) => {
-   if (e.target === pdfModal || e.target === emptyModal) {
-       closeModal(e.target);
-   }
-});
 
-document.addEventListener('keydown', (e) => {
-   if (e.key === 'Escape') {
-       if (!pdfModal.classList.contains('hidden')) closeModal(pdfModal);
-       if (!emptyModal.classList.contains('hidden')) closeModal(emptyModal);
-   }
-});
+
     </script>
 </body>
 </html>

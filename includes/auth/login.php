@@ -1,7 +1,7 @@
 <?php
 // login.php
 session_start();
-include 'database.php';
+include '../config/database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Get the submitted username/email and password
@@ -12,7 +12,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $userId = loginUser($usernameOrEmail, $password);
     if ($userId) {
         $_SESSION['user_id'] = $userId;
-        header("Location: dashboard.php");
+        header("Location: ../user/dashboard.php");
         exit();
     } else {
         $_SESSION['error'] = "Invalid username/email or password";

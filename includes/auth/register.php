@@ -3,10 +3,10 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-require_once 'config.php';
-require 'PHPMailer/src/PHPMailer.php';
-require 'PHPMailer/src/SMTP.php';
-require 'PHPMailer/src/Exception.php';
+require_once '../config/config.php';
+require '../../libs/PHPMailer/src/PHPMailer.php';
+require '../../libs/PHPMailer/src/SMTP.php';
+require '../../libs/PHPMailer/src/Exception.php';
 
 session_start();
 
@@ -42,7 +42,7 @@ function getBaseURL() {
     if ($host === 'localhost' || $host === 'localhost:3307') {
         return 'http://localhost/finance_tracker';
     } else {
-        return 'https://financetracker.great-site.net';
+        return 'https://financetracker.wuaze.com';
     }
 }
 
@@ -56,7 +56,7 @@ function sendOTPEmail($email, $otp, $name, $verificationToken) {
         $mail->Host = 'smtp.gmail.com';
         $mail->SMTPAuth = true;
         $mail->Username = 'yasasnew@gmail.com';
-        $mail->Password = '------------------';
+        $mail->Password = 'znws dvot mumw ylkk';
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port = 587;
         

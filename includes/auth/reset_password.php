@@ -6,7 +6,7 @@ function getBaseURL() {
     if ($host === 'localhost' || $host === 'localhost:3307') {
         return 'http://localhost/finance_tracker';
     } else {
-        return 'https://financetracker.great-site.net';
+        return 'https://financetracker.wuaze.com/';
     }
 }
 require_once 'config.php';
@@ -54,7 +54,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $mail->Host = 'smtp.gmail.com';
                 $mail->SMTPAuth = true;
                 $mail->Username = 'yasasnew@gmail.com';
-                $mail->Password = '--------';
+                $mail->Password = 'znws dvot mumw ylkk';
                 $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = 587;
                 
