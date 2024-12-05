@@ -172,6 +172,12 @@ $greeting = getTimeBasedGreeting();
     .animate-fade-in {
         animation: fadeIn 0.5s ease-out;
     }
+
+    #pdfModal {
+        animation: fadeIn 0.5s ease-out;
+        transition: opacity 0.5s ease-in-out;
+    }
+    
 </style>
 
 
@@ -804,54 +810,55 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
+// modal controlls
 
-// --0-- data modal functions give the user to chnage close them
-const noTransactionModal = document.getElementById('emptyDataModal');
-const closeButton = noTransactionModal.querySelector('button[aria-label="Close"]');
+const pdfModal = document.getElementById('pdfModal');
+const emptyModal = document.getElementById('emptyDataModal'); 
+const openModal = document.getElementById('openModal');
+const closeButtons = document.querySelectorAll('[aria-label="Close"]');
+const cancelButtons = document.querySelectorAll('button');
 
-if (noTransactionModal) {
-    // Existing outside click handler
-    noTransactionModal.addEventListener('click', function(e) {
-        if (e.target === this) {
-            this.style.opacity = '0';
-            setTimeout(() => {
-                this.style.display = 'none';
-            }, 300);
-        }
-    });
-
-    // Add close button handler
-    closeButton.addEventListener('click', function() {
-        noTransactionModal.style.opacity = '0';
-        setTimeout(() => {
-            noTransactionModal.style.display = 'none';
-        }, 300);
-    });
+function closeModal(modal) {
+   modal.classList.add('opacity-0');
+   setTimeout(() => {
+       modal.classList.add('hidden');
+       modal.classList.remove('opacity-100');
+   }, 300);
 }
 
-// Report Modal
+function openPdfModal(e) {
+   e.preventDefault();
+   pdfModal.classList.remove('hidden');
+   setTimeout(() => {
+       pdfModal.classList.remove('opacity-0');
+       pdfModal.classList.add('opacity-100');
+   }, 10);
+}
 
-// Open Modal
-document.getElementById('openModal').addEventListener('click', function (e) {
-        e.preventDefault();
-        document.getElementById('pdfModal').classList.remove('hidden');
-    });
+openModal.addEventListener('click', openPdfModal);
 
-    // Close Modal
-    document.getElementById('closeModal').addEventListener('click', function () {
-        document.getElementById('pdfModal').classList.add('hidden');
-    });
+closeButtons.forEach(btn => {
+   btn.addEventListener('click', () => closeModal(btn.closest('.fixed')));
+});
 
-    // Close modal when clicking outside of it
-    window.addEventListener('click', function (e) {
-        const modal = document.getElementById('pdfModal');
-        if (e.target === modal) {
-            modal.classList.add('hidden');
-        }
-    });
+cancelButtons.forEach(btn => {
+   if(btn.textContent.trim() === 'Cancel') {
+       btn.addEventListener('click', () => closeModal(btn.closest('.fixed')));
+   }
+});
 
+window.addEventListener('click', (e) => {
+   if (e.target === pdfModal || e.target === emptyModal) {
+       closeModal(e.target);
+   }
+});
 
-
+document.addEventListener('keydown', (e) => {
+   if (e.key === 'Escape') {
+       if (!pdfModal.classList.contains('hidden')) closeModal(pdfModal);
+       if (!emptyModal.classList.contains('hidden')) closeModal(emptyModal);
+   }
+});
     </script>
 </body>
 </html>
